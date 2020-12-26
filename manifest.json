@@ -1,0 +1,24 @@
+{
+    "name": "Trackpad Gestures",
+    "version": "0.1",
+    "description": "An extension that allows you to\n browse the web productively with your trackpad and keyboard",
+    "background":{
+        "scripts":["/static/background.js"],
+        "persistent": false
+    
+    },
+    "page_action":{
+        "default_popup": "views/popup.html",
+        "default_icon":{
+            "16":"icons/Golf_ball.png"
+        }
+    },
+    "options_page": "views/options.html",
+    "content_scripts":[
+        {
+            "matches":["<all_urls>"],
+            "js": ["static/contentScript.js"]
+        }
+    ],
+    "manifest_version": 2
+}
