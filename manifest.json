@@ -1,7 +1,8 @@
 {
     "name": "Trackpad Gestures",
     "version": "0.1",
-    "description": "An extension that allows you to\n browse the web productively with your trackpad and keyboard",
+    "description": "An extension that allows you to browse the web productively with your trackpad and keyboard",
+    "permissions": ["activeTab"],
     "background":{
         "scripts":["/static/background.js"],
         "persistent": false
@@ -16,7 +17,6 @@
     "options_page": "views/options.html",
     "content_scripts":[
         {
-            "matches":["<all_urls>"],
             "js": ["static/contentScript.js"]
         }
     ],
