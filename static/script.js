@@ -121,6 +121,8 @@ class Gestures{
         chrome.tabs.create({url: link});*/
         // TODO: Uncomment parts above
         window.open("","_blank");
+
+        // REVIEW: Firefox, opera, chrome newtab - about:newtab;
     }
     reloadTab(){
         window.open("");
