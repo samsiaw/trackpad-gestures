@@ -2,6 +2,17 @@
 content_scripts matches 
 https://developer.chrome.com/docs/extensions/mv3/manifest/activeTab/
 */
+const rel = 10;
+function canUseGes(){
+    if (localStorage["gesDis"] === undefined){
+        return true;
+    }
+    return false;
+}
+function disGes(){
+    localStorage["gesDis"] = true;
+    setTimeout(()=>{localStorage.removeItem("gesDis")}, 500);
+}
 /**
  * Returns true if mouse was moved left
  * @param {event} event 
@@ -9,15 +20,18 @@ https://developer.chrome.com/docs/extensions/mv3/manifest/activeTab/
 function movedLeft(event){
     // TODO: Add ability to set sensitivity later
     relMoveX = event.movementX;
-    if (relMoveX < 0 && Math.abs(relMoveX)>15){
+    if (relMoveX < 0 && Math.abs(relMoveX)>rel && canUseGes()){
+        disGes();
         return true;
+        
      }
      return false;
 }
 
 function movedRight(event){
     relMoveX = event.movementX;
-    if (relMoveX > 0 && Math.abs(relMoveX)>15){
+    if (relMoveX > 0 && Math.abs(relMoveX)>rel && canUseGes()){
+        disGes();
         return true;
      }
      return false;
@@ -25,7 +39,8 @@ function movedRight(event){
 
 function movedUp(event){
     relMoveY = event.movementY;
-    if (relMoveY < 0 && Math.abs(relMoveX)>15){
+    if (relMoveY < 0 && Math.abs(relMoveX)>15 && canUseGes()){
+        disGes();
         return true;
      }
      return false;
@@ -33,7 +48,8 @@ function movedUp(event){
 
 function movedDown(event){
     relMoveY = event.movementY;
-    if (relMoveY > 0 && Math.abs(relMoveX)>15){
+    if (relMoveY > 0 && Math.abs(relMoveX)>15 && canUseGes()){
+        disGes();
         return true;
      }
      return false;
@@ -52,68 +68,76 @@ function keyPressed(event, key){
     }
 }
 
-/**
- * Checks for mouse movement (left) and executes a function if a 
- * required key is provided 
- * @param {event} event 
- * @param {string} key 
- * @param {function} callback 
- */
-function cmdMsLeft(event, key, callback){
-    if (keyPressed(event,key)){
-        if( movedLeft(event)){
-            callback();
+class Gestures{
+    constructor(){}
+    /**
+     * Checks for mouse movement (left) and executes a function if a 
+     * required key is provided 
+     * @param {event} event 
+     * @param {string} key 
+     * @param {function} callback 
+     */
+    cmdMsLeft(event, key, callback){
+        if (keyPressed(event,key)){
+            if( movedLeft(event)){
+                callback();
+                
+            }
         }
     }
-}
-function cmdMsRight(event,key, callback){
-    if (keyPressed(event,key)){
-        if( movedRight(event)){
-            callback();
+    cmdMsRight(event,key, callback){
+        if (keyPressed(event,key)){
+            if( movedRight(event)){
+                callback();
+            }
         }
     }
-}
-function cmdMsUp(event,key, callback){
-    if (keyPressed(event,key)){
-        if( movedUp(event)){
-            callback();
+    cmdMsUp(event,key, callback){
+        if (keyPressed(event,key)){
+            if( movedUp(event)){
+                callback();
+            }
         }
     }
-}
-function cmdMsDown(event, key, callback){
-    if (keyPressed(event,key)){
-        if( movedDown(event)){
-            callback();
+    cmdMsDown(event, key, callback){
+        if (keyPressed(event,key)){
+            if( movedDown(event)){
+                callback();
+            }
         }
     }
-}
-// TODO: Add round, triangular, L (up to down, down to up) path detection
+    // TODO: Add round, triangular, L (up to down, down to up) path detection
 
-// TODO: Add functions for performing tasks.
+    // TODO: Add functions for performing tasks.
 
-function newWindow(link = "https://google.com"){
-    
+    newWindow(link = "https://google.com"){
+        window.open(link,"", "h");
+    }
+    newTab(link = "://newtab"){
+        // REVIEW: Check for browser type first and use chrome.tabs.create
+        //window.open(link); //Opens a new tab if client setting is to open popups as tabs
+        /*browser = "chrome";
+        link = browser + link;
+        chrome.tabs.create({url: link});*/
+        // TODO: Uncomment parts above
+        window.open("","_blank");
+    }
+    reloadTab(){
+        window.open("");
+    }
+    cloneTab(){
+        const w = window.open(" ");
+        if (w !== undefined){
+            true;
+        }
+    }
+    goBack(){
+        window.history.back();
+    }
+    goForward(){
+        window.history.forward();
+    }
 }
-function newTab(link = "://newtab"){
-    // REVIEW: Check for browser type first
-    //window.open(link); //Opens a new tab if client setting is to open popups as tabs
-    browser = "chrome";
-    link = browser + link;
-    chrome.tabs.create({url: link});
-}
-function reloadTab(){
-    window.open("");
-}
-function cloneTab(){
-    window.open(" ");
-}
-function goBack(){
-    window.history.back();
-}
-function goForward(){
-    window.history.forward();
-}
-
 //() => document.addEventListener("mousemove", altAndMouseMove));
 
 /*
@@ -128,7 +152,5 @@ forward()       DONE
 New window = add third argument to open()   DONE
 
 close tab       NOT DONE (can use chrome.tabs.remove())
-        
-
 
 */
