@@ -8,10 +8,10 @@ default_mapping = {
     newbgt: "msRU",
     closet: "msD",
     reocloset: "msU",
-    reloadt: "msDiaLR",
+    reloadt: "msDiaLRU",
     back: "msL",
     forward: "msR",
-    stopload: "msDiaRL"
+    stopload: "msDiaRLD"
     }
 }
 cmd_descr = {
@@ -29,10 +29,10 @@ gesture_descr = {
     "msRU": "mouse Right Up",
     "msD": "mouse Down",
     "msU": "mouse Up",
-    "msDiaLR": "mouse Diagonal Left to Right",
+    "msDiaLRU": "mouse Diagonal Left to Right (Up)",
     "msL": "mouse Left",
     "msR": "mouse Right",
-    "msDiaRL": "mouse Diagonal Right to Left"
+    "msDiaRLD": "mouse Diagonal Right to Left (Down)"
 }
 //on chrome update, extension update, or extension install
 chrome.runtime.onInstalled.addListener(() => {
@@ -49,3 +49,8 @@ chrome.runtime.onInstalled.addListener(() => {
     chrome.tabs.create({url : "./views/options.html"});
 });
 
+chrome.runtime.onMessage.addListener{
+    (request, sender, respond) =>{
+
+    }
+}

@@ -68,8 +68,7 @@ function keyPressed(event, key){
     }
 }
 
-class Gestures{
-    constructor(){}
+
     /**
      * Checks for mouse movement (left) and executes a function if a 
      * required key is provided 
@@ -139,7 +138,7 @@ class Gestures{
     goForward(){
         window.history.forward();
     }
-}
+
 //() => document.addEventListener("mousemove", altAndMouseMove));
 
 /*
