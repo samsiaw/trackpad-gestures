@@ -4,8 +4,8 @@
 
 let abs = Math.abs
 var trigger = "alt"; //TODO: Get trigger from background.js
-const sensitivity = 10;
-const lim = 5;
+const sensitivity = 15;
+const lim = 10;
 const gesture_pause = 1000; //Min Time between successful successive gestures
 //alert("contentScriptInserted");
 
@@ -105,7 +105,7 @@ document.addEventListener("mousemove", (event)=>{
                         sendMess("msDiaLRU");
                         return;
                     }
-                    if (relMoveY > 0){ // ms Diagonal Left to Right Upwards
+                    if (relMoveY > 0){ // ms Diagonal Left to Right Downwards
                         disGes();
                         alert("Diagonal left to right - downwards");
                         sendMess("msDiaLRD");
