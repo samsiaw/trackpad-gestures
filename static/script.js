@@ -151,7 +151,7 @@ window.history.
 back()          DONE
 forward()       DONE
 
-New window = add third argument to open()   DONE
+New window = use chrome.windows.create({state: "maximized"}) DONE (background script);
 
 close tab       NOT DONE (can use chrome.tabs.remove())
 
