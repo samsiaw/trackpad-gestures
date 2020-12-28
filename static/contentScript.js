@@ -1,33 +1,19 @@
 // REVIEW: Send messages to background_scripts to access chrome.tabs
 // XXX: Map cmd names to their functions
 // Detect gesture and send message to background tab to execute
-cmd_descr = {
-    newt : "Open New Tab",
-    newbgt: "Open New Background Tab",
-    closet: "Close Tab",
-    reocloset: "Reopen Recently Closed Tab",
-    reloadt: "Reload Tab",
-    back: "Back",
-    forward: "Forward",
-    stopload: "Stop Loading Current Tab"
-}
-cmd = {
-    newt: newTab,
-    newbgt: newBgTab,
-    closet: closeTab,
-    reloadt: reloadTab,
-    back: goBack,
-    forward: goForward,
-    stopload: stopLoad
-}
+
 let abs = Math.abs
-const trigger;
+var trigger = "alt"; //TODO: Get trigger from background.js
 const sensitivity = 10;
 const lim = 5;
+const gesture_pause = 1000; //Min Time between successful successive gestures
+//alert("contentScriptInserted");
 
-chrome.runtime.sendMessage({msg: "trig"}, (response)={
-    trigger = response.trigger !== undefined ? response.trigger, "alt";
-});
+/*chrome.runtime.sendMessage({msg: "trig"}, (response)=>{
+    trigger = response.trigger !== undefined ? response.trigger: "alt";
+    alert(`trigger set to ${trigger}`);
+});*/
+
 
 function keyPressed(event, key){
     if (key === "ctrl"){
@@ -55,7 +41,7 @@ function canUseGes(){
 }
 function disGes(){
     localStorage["gesDis"] = true;
-    setTimeout(()=>{localStorage.removeItem("gesDis")}, 500);
+    setTimeout(()=>{localStorage.removeItem("gesDis")}, gesture_pause);
 }
 document.addEventListener("mousemove", (event)=>{
     // Detect gesture 
@@ -65,46 +51,69 @@ document.addEventListener("mousemove", (event)=>{
         console.log(`${trigger} pressed`);
         relMoveX = event.movementX;
         relMoveY = event.movementY;
-        
+
         if (canUseGes()){
+            //alert("Can use Ges");
             if (abs(relMoveX)>sensitivity && abs(relMoveY)<lim){
                 if (relMoveX > 0){ // ms Right
                     disGes();
+                    alert("ms Right");
                     sendMess("msR");
                     return;
                 }
 
                 if (relMoveX < 0){ //ms Left
                     disGes();
+                    alert("ms left");
                     sendMess("msL");
                     return;
                 }
         }
             if (abs(relMoveY)>sensitivity && abs(relMoveX)<lim){
-                if (relMoveY > 0 ){ //ms Up
+                if (relMoveY < 0 ){ //ms Up
                     disGes();
+                    alert("ms up");
                     sendMess("msU");
                     return;
                 }
-                if (relMoveY < 0 ){ //ms Down
+                if (relMoveY > 0 ){ //ms Down
                     disGes();
+                    alert("ms down");
                     sendMess("msD");
                     return;
                 }
         }
             if (abs(relMoveY)>sensitivity && abs(relMoveX)>sensitivity){
-                if (relMoveX < 0 && relMoveY > 0){ // ms Diagonal Right to left Downwards
-                    disGes();
-                    alert("Diagonal right to left - downwards");
-                    sendMess("msDiaRLD");
-                    return;
+                if (relMoveX < 0){ // Right to left
+                    if (relMoveY > 0){ // ms Diagonal Right to left Downwards
+                        disGes();
+                        alert("Diagonal right to left - downwards");
+                        sendMess("msDiaRLD");
+                        return;
+                    }
+                    if (relMoveY < 0){ // ms Dia RL U
+                        disGes();
+                        alert("Diagonal right to left - upwards");
+                        sendMess("msDiaRLU");
+                        return;
+                    }
                 }
-                if (relMove > 0 && relMoveY < 0){ // ms Diagonal Left to Right Upwards
-                    disGes();
-                    alert("Diagonal left to right - upwards");
-                    sendMess("msDiaLRU");
-                    return;
+                if (relMoveX > 0){ // left to right
+                    if (relMoveY < 0){ // ms Diagonal Left to Right Upwards
+                        disGes();
+                        alert("Diagonal left to right - upwards");
+                        sendMess("msDiaLRU");
+                        return;
+                    }
+                    if (relMoveY > 0){ // ms Diagonal Left to Right Upwards
+                        disGes();
+                        alert("Diagonal left to right - downwards");
+                        sendMess("msDiaLRD");
+                        return;
+                    }
+
                 }
+                
             }
         }
     }

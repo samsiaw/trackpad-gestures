@@ -1,6 +1,14 @@
 //TODO: Receive messages from contentScript and fireoff commands here
 //XXX: Send feedback/response after receiving messages
-
+/*cmd = {
+    newt: newTab,
+    newbgt: newBgTab,
+    closet: closeTab,
+    reloadt: reloadTab,
+    back: goBack,
+    forward: goForward,
+    stopload: stopLoad
+}*/
 default_mapping = {
     map:{
     trigger: "alt",
@@ -34,13 +42,15 @@ gesture_descr = {
     "msR": "mouse Right",
     "msDiaRLD": "mouse Diagonal Right to Left (Down)"
 }
+var mapping;
 //on chrome update, extension update, or extension install
 chrome.runtime.onInstalled.addListener(() => {
     // Set the settings for commands and their gestures
     
-    const mapping;
+   
     chrome.storage.sync.get("tpad_ges", (obj)=>{
-        mapping = obj["tpad_ges"];
+       mapping = obj["tpad_ges"];
+        alert(obj["tpad_ges"]);
     });
     if (mapping === undefined){
         mapping = JSON.stringify(default_mapping);
@@ -49,8 +59,9 @@ chrome.runtime.onInstalled.addListener(() => {
     chrome.tabs.create({url : "./views/options.html"});
 });
 
-chrome.runtime.onMessage.addListener{
-    (request, sender, respond) =>{
+chrome.runtime.onMessage.addListener(
+    (request, sender, respond) => {
+        console.log(`background: ${request.msg}`);
+    
+});
 
-    }
-}
