@@ -1,6 +1,5 @@
 // REVIEW: Send messages to background_scripts to access chrome.tabs
-// XXX: Map cmd names to their functions
-// Detect gesture and send message to background tab to execute
+
 
 let abs = Math.abs
 var trigger = "alt"; //TODO: Get trigger from background.js
@@ -28,6 +27,9 @@ function keyPressed(event, key){
 function sendMess(str){
     chrome.runtime.sendMessage({msg: str}, (response)={
         //Add an instruction for the response
+        if (response["msg"] !== "success"){
+            console.log(response["msg"]);
+        }
     });
 }
 

@@ -1,25 +1,26 @@
 //TODO: Receive messages from contentScript and fireoff commands here
 //XXX: Send feedback/response after receiving messages
+//XXX: Add other commands later {currently supporting 7 commands for 8 gestures}
+// Keep gestures constant
 /*cmd = {
     newt: newTab,
     newbgt: newBgTab,
     closet: closeTab,
     reloadt: reloadTab,
-    back: goBack,
-    forward: goForward,
-    stopload: stopLoad
+    back: back,
+    forward: forward,
+    reocloset: reopenClosed
 }*/
 default_mapping = {
-    map:{
     trigger: "alt",
-    newt: "msLU",
-    newbgt: "msRU",
-    closet: "msD",
-    reocloset: "msU",
-    reloadt: "msDiaLRU",
-    back: "msL",
-    forward: "msR",
-    stopload: "msDiaRLD"
+    map:{
+    "msL": "back",
+    "msR": "forward",
+    "msU": "newt",
+    "msD": "closet",
+    "msRU": "newbgt",
+    "msLU": "reocloset",
+    "msRD": "reloadt"
     }
 }
 cmd_descr = {
@@ -30,17 +31,17 @@ cmd_descr = {
     reloadt: "Reload Tab",
     back: "Back",
     forward: "Forward",
-    stopload: "Stop Loading Current Tab"
+
 }
 gesture_descr = {
-    "msLU": "mouse Left Up",
-    "msRU": "mouse Right Up",
     "msD": "mouse Down",
     "msU": "mouse Up",
-    "msDiaLRU": "mouse Diagonal Left to Right (Up)",
+    "msRU": "mouse Diagonal Left to Right (Up)",
+    "msRD": "mouse Diagonal Left to Right (Down)",
     "msL": "mouse Left",
     "msR": "mouse Right",
-    "msDiaRLD": "mouse Diagonal Right to Left (Down)"
+    "msLD": "mouse Diagonal Right to Left (Down)",
+    "msLU": "mouse Diagonal Right to Left (Up)"
 }
 var mapping;
 //on chrome update, extension update, or extension install
@@ -65,3 +66,42 @@ chrome.runtime.onMessage.addListener(
     
 });
 
+function newTab(){
+    chrome.tabs.create({active: true});
+    console.log("new tab created");
+}
+function newBgTab(){
+    chrome.tabs.create({active: false});
+    console.log("new bg tab");
+}
+function singleTab(cmd){
+    chrome.tabs.query({active: true, currentWindow: true}, (arrayTabs){
+        let tab = arrayTabs[0];
+        if (cmd === "reload"){
+            chrome.tabs.update(tab.id, {url: tab.url});
+        }
+        else if (cmd === "close"){
+            chrome.tabs.remove(tab.id);
+        }
+    })
+}
+function closeTab(tab){
+    singleTab("close");
+    console.log("tab closed");
+}
+function reloadTab(tab){
+    singleTab("reload");
+    console.log("tab reloaded");
+}
+function back(){
+    window.history.back();
+    console.log("back");
+}
+function forward(){
+    window.history.forward();
+    console.log("forward");
+}
+function reopenClosed(){
+    chrome.sessions.restore();
+    console.log("restored tab");
+}
