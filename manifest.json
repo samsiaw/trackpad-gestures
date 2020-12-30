@@ -1,9 +1,9 @@
 {
     "name": "Trackpad Gestures",
-    "version": "0.9",
+    "version": "0.9.4",
     "author": "SamTS",
     "description": "An extension that allows you to browse the web productively with your laptop's trackpad and keyboard",
-    "permissions": ["activeTab","storage", "sessions"],
+    "permissions": ["storage", "sessions", "tabs","<all_urls>"],
     "background":{
         "scripts":["/static/background.js"],
         "persistent": false
