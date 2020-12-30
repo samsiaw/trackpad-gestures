@@ -62,7 +62,7 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 chrome.runtime.onMessage.addListener(
-    (request, sender, respond) => {
+    (request, sender, sendResponse) => {
         chrome.storage.sync.get("tpad_ges", (obj)=>{
         mapping = obj["tpad_ges"];
         r_msg = request.msg;
@@ -71,13 +71,15 @@ chrome.runtime.onMessage.addListener(
         console.log(`b: command ${command}`);
         //console.log(`func ${cmd[command]}`);
         if (command === "back"|| command === "forward"){
-            respond({msg : command});
+            sendResponse({msg : command});
+            
             //console.log(`background: ${command}`);
         }
         else{
             cmd[`${command}`](); //Call function
             //console.log(`bg: ${command}`);
         }
+        return true; // (keeps the sendResonse func valid)
     });
           
 });
