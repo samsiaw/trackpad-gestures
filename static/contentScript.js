@@ -1,9 +1,9 @@
-
+localStorage.removeItem("gesDis");
 let abs = Math.abs
 var trigger = "alt"; //TODO: Get trigger from background.js
 const sensitivity = 15;
 const lim = 10;
-const gesture_pause = 1000; //Min Time between successful successive gestures
+const gesture_pause = 300; //Min Time between successful successive gestures
 //alert("contentScriptInserted");
 
 /*chrome.runtime.sendMessage({msg: "trig"}, (response)=>{
@@ -20,12 +20,30 @@ function keyPressed(event, key){
         return event.altKey;
     }
 }
-
+// window.history api accessible only from the content script
+function back(){
+    window.history.back();
+    console.log("back");
+}
+function forward(){
+    window.history.forward();
+    console.log("forward");
+}
+cmd={
+    "back": back,
+    "forward": forward
+}
 
 function sendMess(str){
     chrome.runtime.sendMessage({msg: str}, (response)=>{
         //Add an instruction for the response
-       console.log(response.msg);
+       //console.log(response.msg);
+       mess = response.msg;
+       if (mess === "back" || mess === "forward"){
+          // alert(`content script: ${mess}`);
+           cmd[mess]();
+           console.log(`script: ${mess}`);
+       }
     });
 }
 
@@ -42,11 +60,12 @@ function disGes(){
     setTimeout(()=>{localStorage.removeItem("gesDis")}, gesture_pause);
 }
 document.addEventListener("mousemove", (event)=>{
+    
     // Detect gesture 
     // Check gesture-cmd map to know which command to send
     // Send message to background script
     if (keyPressed(event, trigger)){
-        console.log(`${trigger} pressed`);
+        //console.log(`${trigger} pressed`);
         relMoveX = event.movementX;
         relMoveY = event.movementY;
 
@@ -86,13 +105,13 @@ document.addEventListener("mousemove", (event)=>{
                     if (relMoveY > 0){ // ms Diagonal Right to left Downwards
                         disGes();
                         //alert("Diagonal right to left - downwards");
-                        sendMess("msDiaRLD");
+                        sendMess("msLD");
                         return;
                     }
                     if (relMoveY < 0){ // ms Dia RL U
                         disGes();
                         //alert("Diagonal right to left - upwards");
-                        sendMess("msDiaRLU");
+                        sendMess("msLU");
                         return;
                     }
                 }
@@ -100,13 +119,13 @@ document.addEventListener("mousemove", (event)=>{
                     if (relMoveY < 0){ // ms Diagonal Left to Right Upwards
                         disGes();
                         //alert("Diagonal left to right - upwards");
-                        sendMess("msDiaLRU");
+                        sendMess("msRU");
                         return;
                     }
                     if (relMoveY > 0){ // ms Diagonal Left to Right Downwards
                         disGes();
                        // alert("Diagonal left to right - downwards");
-                        sendMess("msDiaLRD");
+                        sendMess("msRD");
                         return;
                     }
 

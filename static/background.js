@@ -7,15 +7,13 @@ cmd = {
     newbgt: newBgTab,
     closet: closeTab,
     reloadt: reloadTab,
-    back: back,
-    forward: forward,
     reocloset: reopenClosed,
     neww: newWindow,
     closew: closeWindow
 }
 default_mapping = {
-    trigger: "alt",
-    map:{
+    "trigger": "alt",
+    "map":{
     "msL": "back",
     "msR": "forward",
     "msU": "newt",
@@ -52,29 +50,36 @@ var mapping;
 chrome.runtime.onInstalled.addListener(() => {
     // Set the settings for commands and their gestures
     
-   
     chrome.storage.sync.get("tpad_ges", (obj)=>{
        mapping = obj["tpad_ges"];
-        alert(obj["tpad_ges"]);
+        //alert(obj["tpad_ges"]);
     });
     if (mapping === undefined){
-        mapping = JSON.stringify(default_mapping);
+        mapping = default_mapping;//JSON.stringify(default_mapping);
         chrome.storage.sync.set({"tpad_ges": mapping});
     }
-    chrome.tabs.create({url : "./views/options.html"});
+    //chrome.tabs.create({url : "./views/options.html"});
 });
 
 chrome.runtime.onMessage.addListener(
     (request, sender, respond) => {
-        try{
+        chrome.storage.sync.get("tpad_ges", (obj)=>{
+        mapping = obj["tpad_ges"];
         r_msg = request.msg;
-        command = mapping['map'][r_msg];
-        cmd[command](); //Call function
-        respond({msg : "success"});
+        //console.log(`mapping: ${mapping}`);
+        let command = mapping['map'][`${r_msg}`];
+        console.log(`b: command ${command}`);
+        //console.log(`func ${cmd[command]}`);
+        if (command === "back"|| command === "forward"){
+            respond({msg : command});
+            //console.log(`background: ${command}`);
         }
-        catch(e){
-            respond ({ msg: `unsuccessful ${e}`});
+        else{
+            cmd[`${command}`](); //Call function
+            //console.log(`bg: ${command}`);
         }
+    });
+          
 });
 
 function newTab(){
@@ -104,23 +109,18 @@ function reloadTab(){
     singleTab("reload");
     console.log("tab reloaded");
 }
-function back(){
-    window.history.back();
-    console.log("back");
-}
-function forward(){
-    window.history.forward();
-    console.log("forward");
-}
+
 function reopenClosed(){
     chrome.sessions.restore();
     console.log("restored tab");
 }
 function newWindow(){
     chrome.windows.create({state: 'maximized'});
+    console.log("New window created");
 }
 function closeWindow(){
      chrome.windows.getCurrent({}, (windowObj)=>{
         chrome.windows.remove(windowObj.id);
+        console.log("Window closed");
     });
 }
