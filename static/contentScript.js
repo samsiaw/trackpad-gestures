@@ -1,5 +1,3 @@
-// REVIEW: Send messages to background_scripts to access chrome.tabs
-
 
 let abs = Math.abs
 var trigger = "alt"; //TODO: Get trigger from background.js
@@ -25,11 +23,9 @@ function keyPressed(event, key){
 
 
 function sendMess(str){
-    chrome.runtime.sendMessage({msg: str}, (response)={
+    chrome.runtime.sendMessage({msg: str}, (response)=>{
         //Add an instruction for the response
-        if (response["msg"] !== "success"){
-            console.log(response["msg"]);
-        }
+       console.log(response.msg);
     });
 }
 
@@ -59,14 +55,14 @@ document.addEventListener("mousemove", (event)=>{
             if (abs(relMoveX)>sensitivity && abs(relMoveY)<lim){
                 if (relMoveX > 0){ // ms Right
                     disGes();
-                    alert("ms Right");
+                    //alert("ms Right");
                     sendMess("msR");
                     return;
                 }
 
                 if (relMoveX < 0){ //ms Left
                     disGes();
-                    alert("ms left");
+                   // alert("ms left");
                     sendMess("msL");
                     return;
                 }
@@ -74,13 +70,13 @@ document.addEventListener("mousemove", (event)=>{
             if (abs(relMoveY)>sensitivity && abs(relMoveX)<lim){
                 if (relMoveY < 0 ){ //ms Up
                     disGes();
-                    alert("ms up");
+                    //alert("ms up");
                     sendMess("msU");
                     return;
                 }
                 if (relMoveY > 0 ){ //ms Down
                     disGes();
-                    alert("ms down");
+                    //alert("ms down");
                     sendMess("msD");
                     return;
                 }
@@ -89,13 +85,13 @@ document.addEventListener("mousemove", (event)=>{
                 if (relMoveX < 0){ // Right to left
                     if (relMoveY > 0){ // ms Diagonal Right to left Downwards
                         disGes();
-                        alert("Diagonal right to left - downwards");
+                        //alert("Diagonal right to left - downwards");
                         sendMess("msDiaRLD");
                         return;
                     }
                     if (relMoveY < 0){ // ms Dia RL U
                         disGes();
-                        alert("Diagonal right to left - upwards");
+                        //alert("Diagonal right to left - upwards");
                         sendMess("msDiaRLU");
                         return;
                     }
@@ -103,13 +99,13 @@ document.addEventListener("mousemove", (event)=>{
                 if (relMoveX > 0){ // left to right
                     if (relMoveY < 0){ // ms Diagonal Left to Right Upwards
                         disGes();
-                        alert("Diagonal left to right - upwards");
+                        //alert("Diagonal left to right - upwards");
                         sendMess("msDiaLRU");
                         return;
                     }
                     if (relMoveY > 0){ // ms Diagonal Left to Right Downwards
                         disGes();
-                        alert("Diagonal left to right - downwards");
+                       // alert("Diagonal left to right - downwards");
                         sendMess("msDiaLRD");
                         return;
                     }

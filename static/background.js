@@ -1,16 +1,18 @@
 //TODO: Receive messages from contentScript and fireoff commands here
 //XXX: Send feedback/response after receiving messages
-//XXX: Add other commands later {currently supporting 7 commands for 8 gestures}
+//XXX: currently supporting 9 commands for 8 gestures
 // Keep gestures constant
-/*cmd = {
+cmd = {
     newt: newTab,
     newbgt: newBgTab,
     closet: closeTab,
     reloadt: reloadTab,
     back: back,
     forward: forward,
-    reocloset: reopenClosed
-}*/
+    reocloset: reopenClosed,
+    neww: newWindow,
+    closew: closeWindow
+}
 default_mapping = {
     trigger: "alt",
     map:{
@@ -20,7 +22,8 @@ default_mapping = {
     "msD": "closet",
     "msRU": "newbgt",
     "msLU": "reocloset",
-    "msRD": "reloadt"
+    "msRD": "reloadt",
+    "msLD": "neww"
     }
 }
 cmd_descr = {
@@ -31,7 +34,8 @@ cmd_descr = {
     reloadt: "Reload Tab",
     back: "Back",
     forward: "Forward",
-
+    neww: "Open New Window",
+    closew: "Close Active Window"
 }
 gesture_descr = {
     "msD": "mouse Down",
@@ -62,8 +66,15 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.runtime.onMessage.addListener(
     (request, sender, respond) => {
-        console.log(`background: ${request.msg}`);
-    
+        try{
+        r_msg = request.msg;
+        command = mapping['map'][r_msg];
+        cmd[command](); //Call function
+        respond({msg : "success"});
+        }
+        catch(e){
+            respond ({ msg: `unsuccessful ${e}`});
+        }
 });
 
 function newTab(){
@@ -75,7 +86,7 @@ function newBgTab(){
     console.log("new bg tab");
 }
 function singleTab(cmd){
-    chrome.tabs.query({active: true, currentWindow: true}, (arrayTabs){
+    chrome.tabs.query({active: true, currentWindow: true}, (arrayTabs)=>{
         let tab = arrayTabs[0];
         if (cmd === "reload"){
             chrome.tabs.update(tab.id, {url: tab.url});
@@ -85,11 +96,11 @@ function singleTab(cmd){
         }
     })
 }
-function closeTab(tab){
+function closeTab(){
     singleTab("close");
     console.log("tab closed");
 }
-function reloadTab(tab){
+function reloadTab(){
     singleTab("reload");
     console.log("tab reloaded");
 }
@@ -104,4 +115,12 @@ function forward(){
 function reopenClosed(){
     chrome.sessions.restore();
     console.log("restored tab");
+}
+function newWindow(){
+    chrome.windows.create({state: 'maximized'});
+}
+function closeWindow(){
+     chrome.windows.getCurrent({}, (windowObj)=>{
+        chrome.windows.remove(windowObj.id);
+    });
 }
