@@ -20,30 +20,13 @@ function keyPressed(event, key){
         return event.altKey;
     }
 }
-// window.history api accessible only from the content script
-function back(){
-    window.history.back();
-    console.log("back");
-}
-function forward(){
-    window.history.forward();
-    console.log("forward");
-}
-cmd={
-    "back": back,
-    "forward": forward
-}
 
 function sendMess(str){
     chrome.runtime.sendMessage({msg: str}, (response)=>{
         //Add an instruction for the response
        //console.log(response.msg);
        mess = response.msg;
-       if (mess === "back" || mess === "forward"){
-          // alert(`content script: ${mess}`);
-           cmd[mess]();
-           console.log(`script: ${mess}`);
-       }
+       console.log(`script: ${mess}`);
     });
 }
 

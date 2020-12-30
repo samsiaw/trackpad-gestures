@@ -9,7 +9,9 @@ cmd = {
     reloadt: reloadTab,
     reocloset: reopenClosed,
     neww: newWindow,
-    closew: closeWindow
+    closew: closeWindow,
+    back: back,
+    forward: forward
 }
 default_mapping = {
     "trigger": "alt",
@@ -69,16 +71,9 @@ chrome.runtime.onMessage.addListener(
         //console.log(`mapping: ${mapping}`);
         let command = mapping['map'][`${r_msg}`];
         console.log(`b: command ${command}`);
-        //console.log(`func ${cmd[command]}`);
-        if (command === "back"|| command === "forward"){
-            sendResponse({msg : command});
-            
-            //console.log(`background: ${command}`);
-        }
-        else{
-            cmd[`${command}`](); //Call function
-            //console.log(`bg: ${command}`);
-        }
+        
+        cmd[`${command}`](); //Call function
+
         return true; // (keeps the sendResonse func valid)
     });
           
@@ -125,4 +120,17 @@ function closeWindow(){
         chrome.windows.remove(windowObj.id);
         console.log("Window closed");
     });
+}
+function injectScript(script){
+    chrome.tabs.query({active: true, currentWindow: true}, (tabsArr)=>{
+        chrome.tabs.executeScript(tabsArr[0].id, {code : script});
+    })
+}
+function back(){
+   injectScript("window.history.back()");
+    console.log("back");
+}
+function forward(){
+    injectScript("window.history.forward()");
+    console.log("forward");
 }
