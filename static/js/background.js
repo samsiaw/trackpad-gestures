@@ -11,7 +11,8 @@ cmd = {
     neww: newWindow,
     closew: closeWindow,
     back: back,
-    forward: forward
+    forward: forward,
+    home: home
 }
 default_mapping = {
     "trigger": "alt",
@@ -21,32 +22,12 @@ default_mapping = {
     "msU": "newt",
     "msD": "closet",
     "msRU": "newbgt",
-    "msLU": "reocloset",
+    "msLU": "home",
     "msRD": "reloadt",
     "msLD": "neww"
     }
 }
-cmd_descr = {
-    newt : "Open New Tab",
-    newbgt: "Open New Background Tab",
-    closet: "Close Tab",
-    reocloset: "Reopen Recently Closed Tab",
-    reloadt: "Reload Tab",
-    back: "Back",
-    forward: "Forward",
-    neww: "Open New Window",
-    closew: "Close Active Window"
-}
-gesture_descr = {
-    "msD": "mouse Down",
-    "msU": "mouse Up",
-    "msRU": "mouse Diagonal Left to Right (Up)",
-    "msRD": "mouse Diagonal Left to Right (Down)",
-    "msL": "mouse Left",
-    "msR": "mouse Right",
-    "msLD": "mouse Diagonal Right to Left (Down)",
-    "msLU": "mouse Diagonal Right to Left (Up)"
-}
+
 var mapping;
 //on chrome update, extension update, or extension install
 chrome.runtime.onInstalled.addListener(() => {
@@ -133,4 +114,10 @@ function back(){
 function forward(){
     injectScript("window.history.forward()");
     console.log("forward");
+}
+function home(){
+    chrome.tabs.query({active: true, currentWindow: true}, (tabsArr)=>{
+        chrome.tabs.update(tabsArr[0].id, {url : "about:newtab"});
+    })
+    console.log("Navigated to home tab");
 }
