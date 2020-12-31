@@ -36,8 +36,9 @@ img{
 }
 #inner{
     border: 2px, solid,  rgb(230, 30, 30);
-    width: inherit;
     background-color: green;
-    
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    
 }

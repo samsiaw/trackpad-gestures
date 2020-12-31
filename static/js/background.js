@@ -15,8 +15,8 @@ cmd = {
     home: home
 }
 default_mapping = {
-    "trigger": "alt",
     "map":{
+    "trigger": "alt",
     "msL": "back",
     "msR": "forward",
     "msU": "newt",
