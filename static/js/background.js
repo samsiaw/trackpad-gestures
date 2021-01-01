@@ -1,6 +1,4 @@
-// TODO: Send trigger (+ sensitivity) messages to contentScript
 //XXX: currently supporting 10 commands for 8 gestures
-
 cmd = {
     newt: newTab,
     newbgt: newBgTab,
@@ -15,7 +13,7 @@ cmd = {
 }
 default_mapping = {
     "map":{
-    "trigger": "alt",
+    "trigger": "ctrl",
     "msL": "back",
     "msR": "forward",
     "msU": "newt",
@@ -28,7 +26,7 @@ default_mapping = {
 }
 
 var mapping;
-//on chrome update, extension update, or extension install
+
 chrome.runtime.onInstalled.addListener(() => {
     // Set the settings for commands and their gestures
     
@@ -48,11 +46,11 @@ chrome.runtime.onMessage.addListener(
         chrome.storage.sync.get("tpad_ges", (obj)=>{
         mapping = obj["tpad_ges"];
         r_msg = request.msg;
-        //console.log(`mapping: ${mapping}`);
+      
         let command = mapping['map'][`${r_msg}`];
         console.log(`b: command ${command}`);
         
-        cmd[`${command}`](); //Call function
+        cmd[`${command}`](); 
 
         return true; // (keeps sendResonse func valid)
     });
