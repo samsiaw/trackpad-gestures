@@ -24,9 +24,8 @@ var gesture_descr = {
     "msLD": "mouse Diagonal Right to Left (Down)",
     "msLU": "mouse Diagonal Right to Left (Up)"
 }
-var all_keys = ["ctrl", 'alt'];
+var all_keys = ['alt'];
 var key_descr = {
-    "ctrl": "Ctrl Key",
     "alt": "Alt Key"
 }
 document.addEventListener("DOMContentLoaded", ()=>{
@@ -105,7 +104,7 @@ function mappings_page(map){
 function trigger_page(map){
     gen_Headers(["Trigger", "Ctrl/Alt"]);
 
-    //XXX: Currently supporting only ctrl / alt keys
+    //XXX: Currently supporting only alt key
     let tr2 = document.createElement("tr");
     let td = document.createElement("td");
     let td2 = document.createElement("td");

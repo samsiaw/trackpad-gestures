@@ -13,9 +13,6 @@ const gesture_pause = 300; //Min Time between successful successive gestures
 
 
 function keyPressed(event, key){
-    if (key === "ctrl"){
-        return event.ctrlKey;
-    }
     if (key === "alt"){
         return event.altKey;
     }
@@ -44,9 +41,6 @@ function disGes(){
 }
 document.addEventListener("mousemove", (event)=>{
     
-    // Detect gesture 
-    // Check gesture-cmd map to know which command to send
-    // Send message to background script
     if (keyPressed(event, trigger)){
         
         relMoveX = event.movementX;

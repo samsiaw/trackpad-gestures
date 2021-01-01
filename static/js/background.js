@@ -1,6 +1,4 @@
-// TODO: Send trigger (+ sensitivity) messages to contentScript
 //XXX: currently supporting 10 commands for 8 gestures
-
 cmd = {
     newt: newTab,
     newbgt: newBgTab,
@@ -15,7 +13,7 @@ cmd = {
 }
 default_mapping = {
     "map":{
-    "trigger": "alt",
+    "trigger": "ctrl",
     "msL": "back",
     "msR": "forward",
     "msU": "newt",
