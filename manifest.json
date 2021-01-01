@@ -14,7 +14,10 @@
             "16":"views/icons/research.png"
         }
     },
-    "options_page": "views/optPage.html",
+    "options_ui":{ 
+        "page":"views/optPage.html",
+        "open_in_tab": false
+    },
     "content_scripts":[
         {
             "matches": ["<all_urls>"],
