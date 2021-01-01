@@ -1,5 +1,5 @@
 body{
-    background-color: rgb(30,54,73);
+    background-color: rgba(25, 79, 116, 0.747);
     color: rgb(239,249,255);
     display: flex;
     flex-direction: column;
@@ -34,4 +34,13 @@ td, th{
 }
 img{
     height: 25px;
+
+}
+footer{
+    order: 3;
+    align-self: center;
+    margin-top: 30px;
+}
+a{
+    color: rgb(239,249,255);
 }

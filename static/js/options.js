@@ -73,13 +73,20 @@ function getGesList(){
 function mappings_page(map){
     // Set up table and it's headers
     // TODO: Add images as illustration for gestures
-    gen_Headers("Gesture", "Command");
+    gen_Headers(["Gesture", "Icon", "Command"]);
 
     all_ges.forEach((ges)=>{
         let tr = document.createElement("tr");
         let td = document.createElement("td");
         let td2 = document.createElement("td");
-        tr.append(td, td2);
+        let td3 = document.createElement("td");
+        let img = document.createElement("img");
+
+        td2.appendChild(img);
+        img.src = `../../views/icons/${ges}.svg`;
+        console.log(img.src);
+
+        tr.append(td, td2, td3);
         let select = document.createElement('select');
         select.id = ges;
         gen_Option_tags(select);
@@ -89,7 +96,7 @@ function mappings_page(map){
         label.innerHTML = gesture_descr[ges];
         
         td.appendChild(label);
-        td2.appendChild(select);
+        td3.appendChild(select);
         document.querySelector("table").appendChild(tr);
       
         select.value = map[ges];
@@ -97,7 +104,7 @@ function mappings_page(map){
     });
 }
 function trigger_page(map){
-    gen_Headers("Trigger", "Ctrl/Alt");
+    gen_Headers(["Trigger", "Ctrl/Alt"]);
 
     //XXX: Currently supporting only ctrl / alt keys
     let tr2 = document.createElement("tr");
@@ -164,20 +171,19 @@ function gen_Options_trig(parent){
     parent.appendChild(opt);
     });
 }
-function gen_Headers(h1_str, h2_str){
+function gen_Headers(h_strings){
     let el = document.querySelector("table");
     el.parentNode.removeChild(el);
 
     var table = document.createElement("table");
-    
     let tr = document.createElement("tr");
-    let th = document.createElement("th");
-    tr.appendChild(th);
-    th.innerHTML = h1_str;
 
-    let th2 = document.createElement("th");
-    th2.innerHTML = h2_str;
-    tr.appendChild(th2);
+    h_strings.forEach((h_str)=>{
+        let th = document.createElement("th");
+        tr.appendChild(th);
+        th.innerHTML = h_str;
+    });
+
     table.appendChild(tr);
     document.querySelector("body").appendChild(table);
 }
