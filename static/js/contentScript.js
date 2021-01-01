@@ -4,7 +4,7 @@ var trigger = "alt"; //TODO: Get trigger from background.js
 const sensitivity = 15;
 const lim = 10;
 const gesture_pause = 300; //Min Time between successful successive gestures
-//alert("contentScriptInserted");
+
 
 /*chrome.runtime.sendMessage({msg: "trig"}, (response)=>{
     trigger = response.trigger !== undefined ? response.trigger: "alt";
@@ -48,7 +48,7 @@ document.addEventListener("mousemove", (event)=>{
     // Check gesture-cmd map to know which command to send
     // Send message to background script
     if (keyPressed(event, trigger)){
-        //console.log(`${trigger} pressed`);
+        
         relMoveX = event.movementX;
         relMoveY = event.movementY;
 

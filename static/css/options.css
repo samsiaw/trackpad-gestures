@@ -38,7 +38,7 @@ img{
 }
 footer{
     order: 3;
-    align-self: center;
+    text-align: center;
     margin-top: 30px;
 }
 a{
