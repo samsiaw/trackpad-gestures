@@ -3,6 +3,7 @@
     "version": "0.9.6",
     "author": "SamTS",
     "description": "An extension that allows you to browse the web productively with your laptop's trackpad and keyboard",
+
     "permissions": ["storage", "sessions", "tabs","<all_urls>"],
     "background":{
         "scripts":["/static/js/background.js"],
@@ -16,7 +17,7 @@
     },
     "options_ui":{ 
         "page":"views/optPage.html",
-        "open_in_tab": false
+        "open_in_tab": true
     },
     "content_scripts":[
         {
