@@ -24,25 +24,40 @@ var gesture_descr = {
     "msLD": "mouse Diagonal Right to Left (Down)",
     "msLU": "mouse Diagonal Right to Left (Up)"
 }
+var all_keys = ["ctrl", 'alt'];
+var key_descr = {
+    "ctrl": "Ctrl Key",
+    "alt": "Alt Key"
+}
 document.addEventListener("DOMContentLoaded", ()=>{
     getCmdList();
     getGesList();
     console.log("DOM loaded");
-    loadElements();
-    //console.log(map);
+    loadElements("mappings");
 
-    //gen_Select_elements(map);
+    document.querySelector("#nav-map").addEventListener("click", ()=>{
+        loadElements("mappings");
+    });
+    document.querySelector("#nav-trig").addEventListener("click", ()=>{
+        loadElements("trigger");
+    });
+    document.querySelector("#nav-git").addEventListener("click", ()=>{
+        chrome.tabs.create({url: "https://github.com/tkYank/trackpad-gestures"});
+    });
 
 })
 
-function loadElements(){
+function loadElements(which){
     chrome.storage.sync.get("tpad_ges", (json)=>{
-        //console.log(json);
          trigger = json["tpad_ges"]["trigger"];
-         //console.log(`trig: ${trigger}`)
          gmap = json["tpad_ges"]["map"];
-        //console.log(`M: ${map}`);
-        gen_Select_elements(gmap);
+
+        if (which ==="mappings"){
+        mappings_page(gmap);
+        }
+        else if (which ==="trigger"){
+        trigger_page(gmap);
+        }
     });
 }
 function getCmdList(){
@@ -55,23 +70,55 @@ function getGesList(){
         all_ges.push(ges);
     }
 }
-function gen_Select_elements(map){
-    //console.log(map);
-    all_ges.forEach((ges)=>{
-        let sel = document.createElement('select');
-        sel.id = ges;
-        gen_Option_tags(sel);
-        //console.log("done with option tags")
-        let label = document.createElement('label');
-        label.htmlFor = sel.id;
-        label.innerHTML = gesture_descr[ges];
-        inner = document.getElementById("inner");
-        inner.append(label, sel);
-      
-        sel.value = map[ges];
-        sel.addEventListener("change", saveNewCmd);
-    });
+function mappings_page(map){
+    // Set up table and it's headers
+    // TODO: Add images as illustration for gestures
+    gen_Headers("Gesture", "Command");
 
+    all_ges.forEach((ges)=>{
+        let tr = document.createElement("tr");
+        let td = document.createElement("td");
+        let td2 = document.createElement("td");
+        tr.append(td, td2);
+        let select = document.createElement('select');
+        select.id = ges;
+        gen_Option_tags(select);
+ 
+        let label = document.createElement('label');
+        label.htmlFor = select.id;
+        label.innerHTML = gesture_descr[ges];
+        
+        td.appendChild(label);
+        td2.appendChild(select);
+        document.querySelector("table").appendChild(tr);
+      
+        select.value = map[ges];
+        select.addEventListener("change", saveNewCmd);
+    });
+}
+function trigger_page(map){
+    gen_Headers("Trigger", "Ctrl/Alt");
+
+    //XXX: Currently supporting only ctrl / alt keys
+    let tr2 = document.createElement("tr");
+    let td = document.createElement("td");
+    let td2 = document.createElement("td");
+    tr2.append(td, td2);
+
+    let select = document.createElement('select');
+    select.id = "trigger";
+    gen_Options_trig(select);
+
+    let label = document.createElement('label');
+    label.htmlFor = select.id;
+    label.innerHTML = "Key";
+    
+    td.appendChild(label);
+    td2.appendChild(select);
+    document.querySelector("table").appendChild(tr2);
+    
+    select.value = map["trigger"];
+    select.addEventListener("change", saveNewCmd);
 }
 function gen_Option_tags(parent){ // Cmds are option elements
     all_cmds.forEach((cmd)=>{
@@ -95,9 +142,9 @@ function saveNewCmd(){
         let newMap = gmap["tpad_ges"]['map'];
         newMap[g] = c;
            
-        console.log(`new map: ${newMap}`);
+       // console.log(`new map: ${newMap}`);
         chrome.storage.sync.set({"tpad_ges":{ "map":newMap}}, ()=>{
-            console.log(`new map in set: ${newMap}`);
+           // console.log(`new map in set: ${newMap}`);
             //console.log("Done setting new value");
         })
     });  
@@ -106,4 +153,31 @@ function saveNewCmd(){
         return;
     }
 }
+
+function gen_Options_trig(parent){
+    //Support only ctrl / alt
+    all_keys.forEach((key)=>{
+    let opt = document.createElement('option');
+    //console.log(cmd_descr)
+    opt.innerHTML = key_descr[key];
+    opt.value = key;
+    parent.appendChild(opt);
+    });
+}
+function gen_Headers(h1_str, h2_str){
+    let el = document.querySelector("table");
+    el.parentNode.removeChild(el);
+
+    var table = document.createElement("table");
     
+    let tr = document.createElement("tr");
+    let th = document.createElement("th");
+    tr.appendChild(th);
+    th.innerHTML = h1_str;
+
+    let th2 = document.createElement("th");
+    th2.innerHTML = h2_str;
+    tr.appendChild(th2);
+    table.appendChild(tr);
+    document.querySelector("body").appendChild(table);
+}
