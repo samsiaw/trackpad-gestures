@@ -125,10 +125,10 @@ function trigger_page(map){
     select.value = map["trigger"];
     select.addEventListener("change", saveNewCmd);
 }
-function gen_Option_tags(parent){ // Cmds are option elements
+function gen_Option_tags(parent){
     all_cmds.forEach((cmd)=>{
     let opt = document.createElement('option');
-    //console.log(cmd_descr)
+    
     opt.innerHTML = cmd_descr[cmd];
     opt.value = cmd;
     parent.appendChild(opt);
@@ -144,11 +144,8 @@ function saveNewCmd(){
     chrome.storage.sync.get("tpad_ges", (gmap)=>{
         let newMap = gmap["tpad_ges"]['map'];
         newMap[g] = c;
-           
-       // console.log(`new map: ${newMap}`);
+    
         chrome.storage.sync.set({"tpad_ges":{ "map":newMap}}, ()=>{
-           // console.log(`new map in set: ${newMap}`);
-            //console.log("Done setting new value");
         })
     });  
     }
