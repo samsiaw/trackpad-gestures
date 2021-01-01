@@ -48,7 +48,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
 
 function loadElements(which){
     chrome.storage.sync.get("tpad_ges", (json)=>{
-         trigger = json["tpad_ges"]["trigger"];
          gmap = json["tpad_ges"]["map"];
 
         if (which ==="mappings"){

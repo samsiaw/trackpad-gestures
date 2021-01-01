@@ -13,7 +13,7 @@ cmd = {
 }
 default_mapping = {
     "map":{
-    "trigger": "ctrl",
+    "trigger": "alt",
     "msL": "back",
     "msR": "forward",
     "msU": "newt",
@@ -32,13 +32,13 @@ chrome.runtime.onInstalled.addListener(() => {
     
     chrome.storage.sync.get("tpad_ges", (obj)=>{
        mapping = obj["tpad_ges"];
-        //alert(obj["tpad_ges"]);
+        
     });
     if (mapping === undefined){
         mapping = default_mapping;
         chrome.storage.sync.set({"tpad_ges": mapping});
     }
-    chrome.tabs.create({url : "../../views/options.html"});
+    //chrome.tabs.create({url : "../../views/optPage.html"});
 });
 
 chrome.runtime.onMessage.addListener(
