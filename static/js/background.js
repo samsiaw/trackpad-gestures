@@ -38,7 +38,7 @@ chrome.runtime.onInstalled.addListener(() => {
         mapping = default_mapping;
         chrome.storage.sync.set({"tpad_ges": mapping});
     }
-    //chrome.tabs.create({url : "../../views/optPage.html"});
+    chrome.tabs.create({url : "../../views/optPage.html"});
 });
 
 chrome.runtime.onMessage.addListener(

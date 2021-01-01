@@ -13,7 +13,7 @@ function keyPressed(event, key){
 
 function sendMess(str){
     chrome.runtime.sendMessage({msg: str}, (response)=>{
-       
+
        mess = response.msg;
        console.log(`script: ${mess}`);
     });

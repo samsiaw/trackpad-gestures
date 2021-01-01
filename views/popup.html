@@ -1,10 +1,32 @@
 <!DOCTYPE html>
 <html>
     <head>
-
+        <style>
+            body{
+                background-color: whitesmoke;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                width:200px;
+                height: 100px;
+            }
+            button{
+                border: 0.5px solid whitesmoke;
+                height: 30px;
+                width: fit-content;
+                align-self: center;
+                border-radius: 5px;
+                background-color: rgba(173, 171, 171, 0.884);
+            }
+            button:hover{
+                background-color: rgb(3,122,200);
+            }
+        </style>
     </head>
     <body>
-        <h1>Popup</h1>
-        <p>Icon <a href="https://www.flaticon.com/search/?author_id=252">By smalllikeart (flaticon.com)</a></p>
+        <button id="options">Open Options</button>
+        <div>Keypad icon made by <a href="https://www.flaticon.com/authors/smalllikeart" title="smalllikeart">smalllikeart</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
+        <script src="../static/js/popup.js">
+        </script>
     </body>
 </html>
