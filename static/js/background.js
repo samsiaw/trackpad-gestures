@@ -1,7 +1,6 @@
-//TODO: Receive messages from contentScript and fireoff commands here
-//XXX: Send feedback/response after receiving messages
-//XXX: currently supporting 9 commands for 8 gestures
-// Keep gestures constant
+// TODO: Send trigger (+ sensitivity) messages to contentScript
+//XXX: currently supporting 10 commands for 8 gestures
+
 cmd = {
     newt: newTab,
     newbgt: newBgTab,
@@ -38,10 +37,10 @@ chrome.runtime.onInstalled.addListener(() => {
         //alert(obj["tpad_ges"]);
     });
     if (mapping === undefined){
-        mapping = default_mapping;//JSON.stringify(default_mapping);
+        mapping = default_mapping;
         chrome.storage.sync.set({"tpad_ges": mapping});
     }
-    //chrome.tabs.create({url : "./views/options.html"});
+    chrome.tabs.create({url : "../../views/options.html"});
 });
 
 chrome.runtime.onMessage.addListener(
@@ -55,7 +54,7 @@ chrome.runtime.onMessage.addListener(
         
         cmd[`${command}`](); //Call function
 
-        return true; // (keeps the sendResonse func valid)
+        return true; // (keeps sendResonse func valid)
     });
           
 });

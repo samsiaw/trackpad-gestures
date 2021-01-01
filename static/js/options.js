@@ -71,8 +71,7 @@ function getGesList(){
     }
 }
 function mappings_page(map){
-    // Set up table and it's headers
-    // TODO: Add images as illustration for gestures
+    
     gen_Headers(["Gesture", "Icon", "Command"]);
 
     all_ges.forEach((ges)=>{
@@ -137,9 +136,7 @@ function gen_Option_tags(parent){ // Cmds are option elements
     });
 }
 function saveNewCmd(){
-    //TODO: Add changing trigger item
-    // remap json
-    // el is a select html element 
+
     if (!localStorage.getItem("updatingDb")){
     console.log("saving new");
     let c = this.value; //cmd or key (ctrl/alt)
