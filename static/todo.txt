@@ -1,0 +1,3 @@
+Add main icon to app
+Add ability to change keyboard triggers
+Change Options Page UI
