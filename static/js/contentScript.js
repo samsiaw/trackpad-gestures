@@ -1,9 +1,10 @@
-localStorage.removeItem("gesDis");
 let abs = Math.abs
-var trigger = "alt"; //TODO: Get trigger from background.js
+var trigger = "alt"; 
 const sensitivity = 15;
 const lim = 10;
-const gesture_pause = 300; //Min Time between successful successive gestures
+const gesture_hold_timer = 300; //Min Time between successful successive gestures
+const cookie = "gesDis";
+localStorage.removeItem(cookie);
 
 function keyPressed(event, key){
     if (key === "alt"){
@@ -11,6 +12,7 @@ function keyPressed(event, key){
     }
 }
 
+/* Sends messages to the extension's background scripts */
 function sendMess(str){
     chrome.runtime.sendMessage({msg: str}, (response)=>{
 
@@ -27,28 +29,29 @@ function canUseGes(){
     }
     return false;
 }
-function disGes(){
+
+function disGes(){ // Disable Gesture [Sets gesture tick and a timeout to remove the tick]
     localStorage["gesDis"] = true;
-    setTimeout(()=>{localStorage.removeItem("gesDis")}, gesture_pause);
+    setTimeout(()=>{localStorage.removeItem("gesDis")}, gesture_hold_timer);
 }
 document.addEventListener("mousemove", (event)=>{
     
     if (keyPressed(event, trigger)){
         
-        relMoveX = event.movementX;
-        relMoveY = event.movementY;
+        var relMoveX = event.movementX;
+        var relMoveY = event.movementY;
 
         if (canUseGes()){
             
             if (abs(relMoveX)>sensitivity && abs(relMoveY)<lim){
-                if (relMoveX > 0){ // ms Right
+                if (relMoveX > 0){ // ms Right, ms ==> mouse
                     disGes();
                     
                     sendMess("msR");
                     return;
                 }
 
-                if (relMoveX < 0){ //ms Left
+                 else { //ms Left
                     disGes();
                   
                     sendMess("msL");
@@ -62,7 +65,7 @@ document.addEventListener("mousemove", (event)=>{
                     sendMess("msU");
                     return;
                 }
-                if (relMoveY > 0 ){ //ms Down
+                else { //ms Down
                     disGes();
                    
                     sendMess("msD");
@@ -76,22 +79,21 @@ document.addEventListener("mousemove", (event)=>{
                 
                         sendMess("msLD");
                         return;
-                    }
-                    if (relMoveY < 0){ 
+                    } else { 
                         disGes();
                        
                         sendMess("msLU");
                         return;
                     }
                 }
-                if (relMoveX > 0){ // left to right
+                else { // left to right
                     if (relMoveY < 0){ // ms Diagonal Left to Right Upwards
                         disGes();
                    
                         sendMess("msRU");
                         return;
                     }
-                    if (relMoveY > 0){ // ms Diagonal Left to Right Downwards
+                    else { // ms Diagonal Left to Right Downwards
                         disGes();
                     
                         sendMess("msRD");
