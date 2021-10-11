@@ -15,7 +15,6 @@ function keyPressed(event, key){
 /* Sends messages to the extension's background scripts */
 function sendMess(str){
     chrome.runtime.sendMessage({msg: str}, (response)=>{
-
        mess = response.msg;
        console.log(`script: ${mess}`);
     });
@@ -23,17 +22,19 @@ function sendMess(str){
 
 /* Gestures */
 /* Temporary hold on gestures to prevent same gesture firing multiple times */
-function canUseGes(){
-    if (localStorage["gesDis"] === undefined){
+function canUseGes(){ // Can use gesture
+    if (localStorage[cookie] === undefined){
         return true;
     }
     return false;
 }
 
 function disGes(){ // Disable Gesture [Sets gesture tick and a timeout to remove the tick]
-    localStorage["gesDis"] = true;
-    setTimeout(()=>{localStorage.removeItem("gesDis")}, gesture_hold_timer);
+    localStorage[cookie] = true;
+    setTimeout(()=>{localStorage.removeItem(cookie)}, gesture_hold_timer);
 }
+
+
 document.addEventListener("mousemove", (event)=>{
     
     if (keyPressed(event, trigger)){
