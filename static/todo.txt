@@ -1,6 +1,0 @@
-Add main icon to app
-Add ability to change keyboard triggers
-Change Options Page UI
-Add a disable button [to popup page] / mode
-Add arrow animation & cmd display if gesture successful
-Use mouswheel [for ref: document.body.addEventListener("mousewheel",(e)=>{console.log(e.wheelDeltaX)});] for swipe gestures
