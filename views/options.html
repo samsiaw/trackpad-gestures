@@ -1,38 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="../static/css/options.css" type="text/css" />
   </head>
   <body id="app">
-    <!-- <i style="font-size: 40px;">&#8593</i> -->
     <nav>
     </nav>
-    <div class="main">
-      <table>
-        <tr>
-          <th>Trigger</th>
-          <td><custom-select :cmdidx="0" :istrigger="true"></custom-select></td>
-        </tr>
-      </table>
-
-      <table>
-        <tbody>
-          <tr>
-            <th>Gesture</th>
-            <th>Icon</th>
-            <th>Command</th>
-          </tr>
-          <tr v-for="item in items">
-            <td>{{item.gesture}}</td>
-            <td v-html=item.icon></td>
-            <td><custom-select :cmdidx="item.cmd_idx"></custom-select></td>
-          </tr>
-        </tbody>
-      </table>
-      
+    <div id="main-wrapper">
+      <div id="main">
+        <theme :light="islight"></theme>
+        <table>
+          <tbody>
+            <tr>
+              <th>Trigger</th>
+              <td><custom-select :cmdidx="0" :istrigger="true"></custom-select></td>
+            </tr>
+          </tbody>
+        </table>
+  
+        <table>
+          <tbody>
+            <tr>
+              <th>Gesture</th>
+              <th>Icon</th>
+              <th>Command</th>
+            </tr>
+            <tr v-for="item in items">
+              <td>{{item.gesture}}</td>
+              <td v-html=item.icon></td>
+              <td><custom-select :cmdidx="item.cmd_idx"></custom-select></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="playground-wrapper">
+        <div>Playground</div>
+        <div id="playground"></div>
+      </div>
     </div>
-
     <script src="../static/js/vue.js"></script>
     <script src="../static/js/options.js"></script>
   </body>
