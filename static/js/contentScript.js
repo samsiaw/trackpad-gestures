@@ -1,4 +1,4 @@
-let abs = Math.abs
+let abs = Math.abs;
 var trigger = "alt"; 
 const sensitivity = 15;
 const lim = 10;
