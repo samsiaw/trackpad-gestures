@@ -15,8 +15,20 @@
           <table>
             <tbody>
               <tr :theme="themestr">
-                <th>Trigger</th>
+                <th>Type</th>
+                <th>Value</th>
+              </tr>
+              <tr :theme="themestr">
+                <td>Trigger</td>
                 <td><custom-select :cmdidx="0" :istrigger="true"></custom-select></td>
+              </tr>
+              <tr :theme="themestr">
+                <td>Sensitivity</td>
+                <td>
+                  <span>5 </span>
+                  <input type="range" min="5" max="40" v-model="sensitivity" @change="changesensitivity">
+                  <span> 40</span> <span>: {{sensitivity}}</span>
+                </td>
               </tr>
             </tbody>
           </table>

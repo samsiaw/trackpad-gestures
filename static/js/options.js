@@ -46,7 +46,7 @@ const app_mapping = current_mapping.map((cmd_idx, idx) => {
   };
 });
 const islight = false; // Default theme
-
+var sensitivity = 15; // Load from chrome.sync
 const app = Vue.createApp({
   data() {
     return {
@@ -54,6 +54,7 @@ const app = Vue.createApp({
       cmd_descriptions,
       key_descriptions,
       islight,
+      sensitivity
     };
   },
   mounted() {
@@ -67,6 +68,9 @@ const app = Vue.createApp({
   computed: {
     themestr(){
       return this.islight ? 'light' : 'dark';
+    },
+    changesensitivity(){
+      sensitivity = this.sensitivity;
     }
   }
 });
@@ -118,83 +122,106 @@ app.component("themer", {
   },
 });
 
-const abs = Math.abs;
-const sensitivity = 15; // Load from chrome.sync
-const gesture_hold_time = 300; // ms
-const gesture_tick = true; // ALlows gesture commands to fire when True
-const fp_constraint = 10; // False Positive Contraint. Anything relative movement less than this is not considered valid
-var gesture_track = [sensitivity, gesture_hold_time, gesture_tick];
+/* Gesture Recognition */
+var gesture_track = {
+  sensitivity: 15, 
+  gesture_pause_time: 100, 
+  point_collection_time: 100, 
+  collect_points: false, 
+  gesture_enabled: true, 
+  status: {
+    first_point: undefined,
+    up: false,
+    down: false,
+    left: false,
+    right: false
+  },
+};
+
 const disable_gesture = () => {
-  gesture_track[2] = false;
+  gesture_track.gesture_enabled = false;
   setTimeout(() => {
-    gesture_track[2] = true;
-  }, gesture_track[gesture_hold_time]);
+    gesture_track.gesture_enabled = true;
+  }, gesture_track.gesture_pause_time);
+};
+
+const evaluation_helper = (str) => {
+  action_handler(str);
+  disable_gesture();
+};
+
+const start_point_collection = () => {
+  gesture_track.collect_points = true;
+  gesture_track.gesture_enabled = true;
+
+  // stop points collection after timeout
+  setTimeout(() => {
+    gesture_track.collect_points = false;
+    gesture_track.gesture_enabled = true;
+    const {up, down, left, right} = gesture_track.status;
+    
+    if ((up && down) || (right && left) || !(up || down || left || right)) {
+      console.log("false positive");
+      evaluation_helper("");
+      return;
+    }
+    let str = "ms";
+    if (left) str += "L";
+    else if (right) str += "R";
+
+    if (up) str += "U";
+    else if (down) str += "D";
+
+    gesture_track.status.first_point = undefined;
+    gesture_track.status.up = false;
+    gesture_track.status.down = false;
+    gesture_track.status.left = false;
+    gesture_track.status.right = false;
+    evaluation_helper(str);
+
+  }, gesture_track.point_collection_time);
 };
 
 const gesture_handler = (event, action_handler) => {
   if (event.altKey) {
-    const relMoveX = event.movementX;
-    const relMoveY = event.movementY;
-    if (gesture_track[2]) {
-      if (abs(relMoveX) > sensitivity && abs(relMoveY) < fp_constraint) {
-        if (relMoveX > 0) {
-          // ms Right, ms ==> mouse
-          disable_gesture();
-          action_handler("msR");
-          return;
+    const x = event.screenX;
+    const y = event.screenY;
+
+    if (gesture_track.gesture_enabled){
+      const first_point = gesture_track.status.first_point;
+
+      if (gesture_track.collect_points){
+        // collect points
+        if (!first_point){
+          gesture_track.status.first_point = [x, y];
         } else {
-          //ms Left
-          disable_gesture();
-          action_handler("msL");
-          return;
-        }
-      }
-      if (abs(relMoveY) > sensitivity && abs(relMoveX) < fp_constraint) {
-        if (relMoveY < 0) {
-          //ms Up
-          disable_gesture();
-          action_handler("msU");
-          return;
-        } else {
-          //ms Down
-          disable_gesture();
-          action_handler("msD");
-          return;
-        }
-      }
-      if (abs(relMoveY) > sensitivity && abs(relMoveX) > sensitivity) {
-        if (relMoveX < 0) {
-          // Right to left
-          if (relMoveY > 0) {
-            // ms Diagonal Right to left Downwards
-            disable_gesture();
-            action_handler("msLD");
-            return;
-          } else {
-            disable_gesture();
-            action_handler("msLU");
-            return;
+          const dx = x - first_point[0];
+          const dy = y - first_point[1];
+          
+          if (Math.abs(dy) > sensitivity){
+              if (dy < 0){
+                  gesture_track.status.up = true;
+              } else if (dy > 0){
+                gesture_track.status.down = true;
+              }
           }
-        } else {
-          // left to right
-          if (relMoveY < 0) {
-            // ms Diagonal Left to Right Upwards
-            disable_gesture();
-            action_handler("msRU");
-            return;
-          } else {
-            // ms Diagonal Left to Right Downwards
-            disable_gesture();
-            action_handler("msRD");
-            return;
+          if (Math.abs(dx) > sensitivity){
+              if (dx < 0) {
+                gesture_track.status.left = true;
+              } else if (dx > 0) {
+                gesture_track.status.right = true;
+              }
           }
         }
+      } else {
+        start_point_collection();
+        gesture_track.status.first_point = [x, y];
       }
     }
   }
 };
 
-const action_handler = (str) =>{
+const action_handler = (which_gesture) =>{
   const str_to_gesture = {
     "msR": 5,
     "msL": 4,
@@ -205,12 +232,12 @@ const action_handler = (str) =>{
     "msLU": 7,
     "msRU": 2,
   };
-  if (str_to_gesture[str] !== undefined) {
+  if (str_to_gesture[which_gesture] !== undefined) {
     const pg_ges = document.getElementById("playground-gesture");
     const pg_cmd = document.getElementById("playground-command");
     const mapping = current_mapping;
-    pg_ges.innerHTML = gesture_descriptions[str_to_gesture[str]];
-    pg_cmd.innerHTML = cmd_descriptions[mapping[str_to_gesture[str]]];
+    pg_ges.innerHTML = gesture_descriptions[str_to_gesture[which_gesture]];
+    pg_cmd.innerHTML = cmd_descriptions[mapping[str_to_gesture[which_gesture]]];
   }
 };
 
@@ -224,9 +251,6 @@ app.component("playground", {
     </div>
   </div>
   `,
-  props: [],
-  data(){
-  },
   computed: {
     themestr(){
       return this.$parent.themestr;
@@ -242,5 +266,4 @@ app.component("playground", {
 document.addEventListener("DOMContentLoaded", () => {
   app.mount("#app");
 });
-
 
