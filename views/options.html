@@ -26,7 +26,7 @@
                 <td>Sensitivity</td>
                 <td>
                   <span>5 </span>
-                  <input type="range" min="5" max="40" v-model="sensitivity" @change="changesensitivity">
+                  <input type="range" :min="5" :max="40" v-model="sensitivity" @change="changesensitivity">
                   <span> 40</span> <span>: {{sensitivity}}</span>
                 </td>
               </tr>
@@ -40,10 +40,10 @@
                 <th>Icon</th>
                 <th>Command</th>
               </tr>
-              <tr v-for="item in items" :theme="themestr">
-                <td>{{item.gesture}}</td>
-                <td v-html=item.icon></td>
-                <td><custom-select :cmdidx="item.cmd_idx"></custom-select></td>
+              <tr v-for="(item, idx) in items" :theme="themestr">
+                <td v-text="this.gesture_descriptions[idx]"></td>
+                <td v-html="this.icon_chars[idx]"></td>
+                <td><custom-select :cmdidx="item" :gestureidx="idx"></custom-select></td>
               </tr>
             </tbody>
           </table>
