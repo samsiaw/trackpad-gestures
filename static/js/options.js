@@ -22,7 +22,7 @@ const gesture_descriptions = [
   "mouse Diagonal Right to Left (Up)",
 ];
 
-const key_descriptions = ["Alt"];
+const key_descriptions = ["Alt", "Ctrl"];
 
 const icon_chars = [
   "&#x21D3",
@@ -37,14 +37,9 @@ const icon_chars = [
 //TODO fix syncing mapping with vue app
 // Maps Gesture (array index) to Command
 const default_mapping = [0, 1, 4, 3, 5, 6, 8, 9];
+
 const current_mapping = default_mapping; // TODO: Load mappings from chrome.sync
-const app_mapping = current_mapping.map((cmd_idx, idx) => {
-  return {
-    gesture: gesture_descriptions[idx],
-    icon: icon_chars[idx],
-    cmd_idx,
-  };
-});
+
 const islight = false; // Default theme
 var sensitivity = 15; // Load from chrome.sync
 const app = Vue.createApp({
@@ -197,12 +192,14 @@ const gesture_handler = (event, action_handler, mapping, sensitivity) => {
         if (up) str += "U";
         else if (down) str += "D";
 
-        gesture_track.status.first_point = undefined;
-        gesture_track.status.up = false;
-        gesture_track.status.down = false;
-        gesture_track.status.left = false;
-        gesture_track.status.right = false;
-        gesture_track.status.num_points = 0;
+        gesture_track.status = {
+          first_point: undefined,
+          num_points: 0,
+          up: false,
+          down: false,
+          left: false,
+          right: false,
+        };
 
         action_handler(str, mapping);
       }
