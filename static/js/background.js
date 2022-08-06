@@ -37,17 +37,22 @@ const commands = [
   home,
 ];
 
-const MSG_TYPE = {
+const MSG_TYPE = Object.freeze({
     GESTURE: 0,
-    SENSITIVITY: 1,
+    threshold: 1,
     KEY: 2,
-};
+});
+
+const KEY_TYPE = Object.freeze({
+  ALT: 0,
+  CTRL: 1,
+});
 
 const default_mapping = [0, 1, 4, 3, 5, 6, 8, 9];
-const default_sensitivity = 15;
+const default_threshold = 15;
 const default_key = "alt";
 var mapping = undefined;
-var sensitivity = undefined;
+var threshold = undefined;
 var key = undefined;
 var storage = undefined;
 
@@ -60,23 +65,23 @@ chrome.runtime.onInstalled.addListener((details) => {
 
         //TODO: On installed, inject content script code into all tabs, to prevent reloading before it pages begin to work
         chrome.storage.sync.get("mapping", (data) => {
-          mapping = data.mapping ? data.mapping : default_mapping;
+          mapping = data.mapping ?? default_mapping;
         });
-        chrome.storage.sync.get("sensitivity", (data) => {
-            sensitivity = data.sensitivity ? data.sensitivity : default_sensitivity;
+        chrome.storage.sync.get("threshold", (data) => {
+            threshold = data.threshold ?? default_threshold;
         });
         chrome.storage.sync.get("key", (data) => {
-            key = data.key ? data.key : default_key;
+            key = data.key ?? default_key;
         });
 
         const new_storage = {
           mapping,
-          sensitivity,
+          threshold,
           key,
         };
         Object.assign(storage, new_storage);
         chrome.storage.sync.set({ storage });
-        chrome.tabs.create({ url: "../../views/optPage.html" });
+        chrome.tabs.create({ url: "../../views/options.html" });
     }
 });
 
@@ -93,21 +98,20 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // console.log(`b: command ${command}`);
             break;
         
-        case MSG_TYPE.SENSITIVITY: 
-            chrome.storage.sync.get("sensitivity", (data) => {
-                sensitivity = data.sensitivity;
-                storage = Object.assign(storage ? storage : {}, {sensitivity});
+        case MSG_TYPE.threshold: 
+            chrome.storage.sync.get("threshold", (data) => {
+                threshold = data.threshold;
+                storage = Object.assign(storage ?? {}, {threshold});
             });
-            // TODO: Send the new sensitivity value to all tabs
+            // TODO: Send the new threshold value to all tabs
         
         case MSG_TYPE.KEY:
             chrome.storage.sync.get("key", (data) => {
                 key = data.key;
-                storage = Object.assign(storage ? storage : {}, {key});
+                storage = Object.assign(storage ?? {}, {key});
             });
             // TODO: Send the new key value to all tabs
 
-        
     };
 
 

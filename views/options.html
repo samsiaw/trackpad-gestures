@@ -11,7 +11,7 @@
       </nav>
       <div id="main-wrapper">
         <div id="main">
-          <themer :light="islight"></themer>
+          <themer ></themer>
           <table>
             <tbody>
               <tr :theme="themestr">
@@ -23,11 +23,11 @@
                 <td><custom-select :cmdidx="0" :istrigger="true"></custom-select></td>
               </tr>
               <tr :theme="themestr">
-                <td>Sensitivity</td>
+                <td>Threshold</td>
                 <td>
                   <span>5 </span>
-                  <input type="range" :min="5" :max="40" v-model="sensitivity" @change="changesensitivity">
-                  <span> 40</span> <span>: {{sensitivity}}</span>
+                  <input type="range" :min="5" :max="40" v-model="threshold" @change="changethreshold">
+                  <span> 40</span> <span>: {{threshold}}</span>
                 </td>
               </tr>
             </tbody>

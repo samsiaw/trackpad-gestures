@@ -34,14 +34,122 @@ const icon_chars = [
   "&#x21D9",
   "&#x21D6",
 ];
-//TODO fix syncing mapping with vue app
+// TODO: Fix gesture recognition issues 
+const KEY_TYPE = Object.freeze({
+  ALT: 0,
+  CTRL: 1,
+});
+const KEY_EVENT_HANDLER = [(ev) => ev.altKey, (ev) => ev.ctrlKey];
+
 // Maps Gesture (array index) to Command
 const default_mapping = [0, 1, 4, 3, 5, 6, 8, 9];
 
 const current_mapping = default_mapping; // TODO: Load mappings from chrome.sync
 
 const islight = false; // Default theme
-var sensitivity = 15; // Load from chrome.sync
+var threshold = 5; //TODO Load from chrome.sync
+var key = undefined; // TODO Load from chrome.sync
+
+/* Gesture Recognition */
+const gesture_track = {
+  points_limit: 10,
+  collect_points: false,
+  gesture_enabled: true,
+  status: {
+    first_point: undefined,
+    num_points: 0,
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+  },
+};
+const action_handler = (which_gesture, mapping_list) => {
+  const str_to_gesture = {
+    msR: 5,
+    msL: 4,
+    msD: 0,
+    msU: 1,
+    msLD: 6,
+    msRD: 3,
+    msLU: 7,
+    msRU: 2,
+  };
+  const gesture_id = str_to_gesture[which_gesture];
+  if (gesture_id !== undefined) {
+    const pg_ges = document.getElementById("playground-gesture");
+    const pg_cmd = document.getElementById("playground-command");
+    pg_ges.innerHTML = gesture_descriptions[gesture_id];
+    pg_cmd.innerHTML = cmd_descriptions[mapping_list[gesture_id]];
+  } else {
+    console.log("action_handler: unknown gesture code");
+  }
+};
+const gesture_handler = (event, gesture_track, mapping_list, threshold, keyID = -1) => {
+  const key_verify = KEY_EVENT_HANDLER[keyID];
+  if (key_verify && key_verify(event)) {
+    const x = event.screenX;
+    const y = event.screenY;
+
+    if (gesture_track.collect_points) {
+      const first_point = gesture_track.status.first_point;
+
+      if (gesture_track.status.num_points < gesture_track.points_limit) {
+        // collect points
+        if (!first_point) {
+          gesture_track.status.first_point = [x, y];
+        } else {
+          const dx = x - first_point[0];
+          const dy = y - first_point[1];
+
+          if (Math.abs(dy) > threshold) {
+            if (dy < 0) {
+              gesture_track.status.up = true;
+            } else if (dy > 0) {
+              gesture_track.status.down = true;
+            }
+          }
+          if (Math.abs(dx) > threshold) {
+            if (dx < 0) {
+              gesture_track.status.left = true;
+            } else if (dx > 0) {
+              gesture_track.status.right = true;
+            }
+          }
+        }
+        gesture_track.status.num_points++;
+      } else {
+        // Done collecting points
+        // Recognize gesture and reset tracking information
+        gesture_track.collect_points = false;
+        const { up, down, left, right } = gesture_track.status;
+
+        let str = "ms";
+        if (left) str += "L";
+        else if (right) str += "R";
+
+        if (up) str += "U";
+        else if (down) str += "D";
+
+        gesture_track.status = {
+          first_point: undefined,
+          num_points: 0,
+          up: false,
+          down: false,
+          left: false,
+          right: false,
+        };
+
+        action_handler(str, mapping_list);
+      }
+    } else {
+      // Start Tracking / Collecting Points to recognize gesture
+      gesture_track.collect_points = true;
+      gesture_track.status.first_point = [x, y];
+    }
+  }
+};
+
 const app = Vue.createApp({
   data() {
     return {
@@ -51,38 +159,37 @@ const app = Vue.createApp({
       key_descriptions,
       gesture_descriptions,
       islight,
-      sensitivity
+      threshold,
+      keyID: KEY_TYPE.ALT,
     };
   },
   methods: {
-    changetheme: function(){
-      this.islight = !this.islight;
+    changeTheme: function (state) {
+      this.islight = state;
     },
-    changemapping: function(gestureIdx, newCmdIdx){
-      if (this.items[gestureIdx]){
-        this.items[gestureIdx].cmd_idx = newCmdIdx;
+    changemapping: function (gestureIdx, newCmdIdx) {
+      if (this.items[gestureIdx] !== undefined) {
+        this.items[gestureIdx] = newCmdIdx;
         // TODO: update value in chrome.sync
       }
     },
-    getMappingAsList: function(){
-      return this.items;
-      // idx => Gesture idx, Value => Command idx
-      // return this.items.map((item) => item.cmd_idx);
-    }
+    changeKey: function (newKeyId) {
+      this.keyID = newKeyId;
+    },
   },
-  watch : {
-    sensitivity : function(newVal,oldVal){
-      this.sensitivity = parseInt(newVal);
-    }
+  watch: {
+    threshold: function (newVal, oldVal) {
+      this.threshold = parseInt(newVal);
+    },
   },
   computed: {
-    themestr(){
-      return this.islight ? 'light' : 'dark';
+    themestr() {
+      return this.islight ? "light" : "dark";
     },
-    changesensitivity(){
-      sensitivity = parseInt(this.sensitivity);
-    }
-  }
+    changethreshold() {
+      threshold = parseInt(this.threshold);
+    },
+  },
 });
 
 app.component("custom-select", {
@@ -101,137 +208,32 @@ app.component("custom-select", {
       isTrigger: this.istrigger,
     };
   },
-  watch:{
-    selectedIdx: function(newCmdIdx, oldVal){
-      this.$parent.changemapping(this.gestureidx, newCmdIdx);
-    }
+  methods: {},
+  watch: {
+    selectedIdx: function (newVal, oldVal) {
+      this.istrigger
+        ? this.$parent.changeKey(newVal)
+        : this.$parent.changemapping(this.gestureidx, newVal);
+    },
   },
   computed: {
-    themestr(){
+    themestr() {
       return this.$parent.themestr;
-    }
-  }
+    },
+  },
 });
 
 app.component("themer", {
   template: `
-  <input type="checkbox" id="themer" v-model.lazy="checked" @change="changetheme">
+  <input type="checkbox" id="themer" v-model="this.$parent.islight">
   <label for="themer">{{ descriptor }}</label> 
   `,
-  methods: {
-    changetheme: function () {
-      this.$parent.changetheme();
-    },
-  },
   computed: {
     descriptor() {
       return "Change to " + (this.$parent.islight ? "dark" : "light");
     },
   },
 });
-
-/* Gesture Recognition */
-var gesture_track = {
-  sensitivity: 15, 
-  gesture_pause_time: 100, 
-  point_collection_time: 100, 
-  points_limit: 8,
-  collect_points: false, 
-  gesture_enabled: true, 
-  status: {
-    first_point: undefined,
-    num_points: 0,
-    up: false,
-    down: false,
-    left: false,
-    right: false
-  },
-};
-
-const gesture_handler = (event, action_handler, mapping, sensitivity) => {
-  if (event.altKey) {
-    const x = event.screenX;
-    const y = event.screenY;
-
-    if (gesture_track.collect_points){
-      const first_point = gesture_track.status.first_point;
-
-      if (gesture_track.status.num_points < gesture_track.points_limit){
-        // collect points
-        if (!first_point){
-          gesture_track.status.first_point = [x, y];
-        } else {
-          const dx = x - first_point[0];
-          const dy = y - first_point[1];
-          
-          if (Math.abs(dy) > sensitivity){
-              if (dy < 0){
-                  gesture_track.status.up = true;
-              } else if (dy > 0){
-                gesture_track.status.down = true;
-              }
-          }
-          if (Math.abs(dx) > sensitivity){
-              if (dx < 0) {
-                gesture_track.status.left = true;
-              } else if (dx > 0) {
-                gesture_track.status.right = true;
-              }
-          }
-        }
-        gesture_track.status.num_points++;
-      } else { // Done collecting points
-        // Recognize gesture and reset tracking information
-        gesture_track.collect_points = false;
-        const {up, down, left, right} = gesture_track.status;
-        
-        let str = "ms";
-        if (left) str += "L";
-        else if (right) str += "R";
-
-        if (up) str += "U";
-        else if (down) str += "D";
-
-        gesture_track.status = {
-          first_point: undefined,
-          num_points: 0,
-          up: false,
-          down: false,
-          left: false,
-          right: false,
-        };
-
-        action_handler(str, mapping);
-      }
-    } else {
-      // Start Tracking / Collecting Points to recognize gesture
-      gesture_track.collect_points = true;
-      gesture_track.status.first_point = [x, y];
-    }
-  }
-};
-
-const action_handler = (which_gesture, mapping_list) =>{
-  const str_to_gesture = {
-    "msR": 5,
-    "msL": 4,
-    "msD": 0,
-    "msU": 1,
-    "msLD": 6,
-    "msRD": 3,
-    "msLU": 7,
-    "msRU": 2,
-  };
-  if (str_to_gesture[which_gesture] !== undefined) {
-    const pg_ges = document.getElementById("playground-gesture");
-    const pg_cmd = document.getElementById("playground-command");
-    pg_ges.innerHTML = gesture_descriptions[str_to_gesture[which_gesture]];
-    pg_cmd.innerHTML = cmd_descriptions[mapping_list[str_to_gesture[which_gesture]]];
-  } 
-  else {
-    console.log("action_handler: unknown gesture code");
-  }
-};
 
 app.component("playground", {
   template: `
@@ -244,18 +246,25 @@ app.component("playground", {
   </div>
   `,
   computed: {
-    themestr(){
+    themestr() {
       return this.$parent.themestr;
-    }
-  }, 
-  mounted(){
-    document.getElementById("playground").addEventListener("mousemove", (ev) => {
-      gesture_handler(ev, action_handler, this.$parent.getMappingAsList(), this.$parent.sensitivity);
-    });
-  }
+    },
+  },
+  mounted() {
+    document
+      .getElementById("playground")
+      .addEventListener("mousemove", (ev) => {
+        gesture_handler(
+          ev,
+          gesture_track,
+          this.$parent.items,
+          this.$parent.threshold,
+          this.$parent.keyID
+        );
+      });
+  },
 });
 
 document.addEventListener("DOMContentLoaded", () => {
   app.mount("#app");
 });
-

@@ -1,6 +1,6 @@
 //TODO Load from chrome.sync.storage
 var gesture_track = {
-  sensitivity: 15,
+  threshold: 15,
   points_limit: 8,
   collect_points: false,
   gesture_enabled: true,
@@ -14,11 +14,11 @@ var gesture_track = {
   },
 };
 
-const MSG_TYPE = {
+const MSG_TYPE = Object.freeze({
   GESTURE: 0,
-  SENSITIVITY: 1,
+  threshold: 1,
   KEY: 2,
-};
+});
 
 /* Sends messages to background script about what gesture is recognized*/
 function send_message(gesture_str) {
@@ -41,7 +41,7 @@ const gesture_handler = (event, action_handler, gesture_track) => {
   if (event.altKey) {
     const x = event.screenX;
     const y = event.screenY;
-    const sensitivity = gesture_track.sensitivity;
+    const threshold = gesture_track.threshold;
     if (gesture_track.gesture_enabled) {
       const first_point = gesture_track.status.first_point;
 
@@ -54,14 +54,14 @@ const gesture_handler = (event, action_handler, gesture_track) => {
             const dx = x - first_point[0];
             const dy = y - first_point[1];
 
-            if (Math.abs(dy) > sensitivity) {
+            if (Math.abs(dy) > threshold) {
               if (dy < 0) {
                 gesture_track.status.up = true;
               } else if (dy > 0) {
                 gesture_track.status.down = true;
               }
             }
-            if (Math.abs(dx) > sensitivity) {
+            if (Math.abs(dx) > threshold) {
               if (dx < 0) {
                 gesture_track.status.left = true;
               } else if (dx > 0) {
