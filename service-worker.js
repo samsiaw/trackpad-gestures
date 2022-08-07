@@ -23,17 +23,19 @@ const KEY_TYPE = Object.freeze({
   CTRL: 1,
 });
 
+const manifest = chrome.runtime.getManifest();
+
 const default_mapping = [0, 1, 4, 3, 5, 6, 8, 9];
 const default_threshold = 5;
 const default_key = "alt";
 var mapping = undefined;
 var threshold = undefined;
 var keyID = undefined;
-var storage = undefined;
+var storage = {};
 var theme = false; // False for Dark Theme
 
 chrome.runtime.onInstalled.addListener((details) => {
-    if (details.reason === chrome.runtime.onInstalledReason.INSTALL){
+    if (details.reason === chrome.runtime.OnInstalledReason.INSTALL){
         // Remove previous versions' storage
         chrome.storage.sync.get("tpad_ges", (obj) => {
             chrome.storage.sync.remove("tpad_ges");
@@ -41,7 +43,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
         chrome.tabs.query({}, (tabs) => {
           tabs.forEach((tab) => {
-            chrome.scripting.executeScript({target: {tabID: tab.id}, files: ["./contentScript.js"]});
+            chrome.scripting.executeScript({target: {tabId: tab.id}, files: ["./static/js/contentScript.js"]});
           });
         });
         
@@ -70,7 +72,7 @@ chrome.runtime.onInstalled.addListener((details) => {
         if (chrome.runtime.openOptionsPage){
           chrome.runtime.openOptionsPage();
         } else {
-          chrome.tabs.create({ url: chrome.runtime.getURL("../../views/options.html")});
+          chrome.tabs.create({ url: chrome.runtime.getURL("./views/options.html")});
         }
     }
 });
@@ -152,7 +154,7 @@ function closeWindow() {
 }
 function injectScript(func) {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabsArr) => {
-    chrome.scripting.executeScript({target: {tabID: tabsArr[0].id}, func: func });
+    chrome.scripting.executeScript({target: {tabId: tabsArr[0].id}, func: func });
   });
 }
 function back() {
@@ -165,7 +167,7 @@ function forward() {
 }
 function home() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabsArr) => {
-    chrome.tabs.update({target: {tabID: tabsArr[0].id}, url: "about:newtab" });
+    chrome.tabs.update({target: {tabId: tabsArr[0].id}, url: "about:newtab" });
   });
   console.log("Navigated to home tab");
 }

@@ -107,3 +107,4 @@ const gesture_handler = (event, action_handler, gesture_track) => {
 document.addEventListener("mousemove", (event) => {
   gesture_handler(event, send_message, gesture_track);
 });
+console.log("Injected");

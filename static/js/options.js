@@ -34,7 +34,6 @@ const icon_chars = [
   "&#x21D9",
   "&#x21D6",
 ];
-// TODO: Fix gesture recognition issues 
 const KEY_TYPE = Object.freeze({
   ALT: 0,
   CTRL: 1,
@@ -43,11 +42,25 @@ const KEY_TYPE = Object.freeze({
 // Maps Gesture (array index) to Command
 const default_mapping = [0, 1, 4, 3, 5, 6, 8, 9];
 
-const current_mapping = default_mapping; // TODO: Load mappings from chrome.sync
+var current_mapping;
+chrome.storage.sync.get("mapping", (data) => {
+  current_mapping = data.mapping ?? default_mapping;
+});
 
-const islight = false; // Default theme
-var threshold = 5; //TODO Load from chrome.sync
-var key = undefined; // TODO Load from chrome.sync
+var islight = false; // Default theme = Dark
+chrome.storage.sync.get("theme", (data) => {
+  islight = data.theme;
+});
+
+var threshold = 5; 
+chrome.storage.sync.get("threshold", (data) => {
+  threshold = data.threshold ?? threshold;
+});
+
+var keyID = KEY_TYPE.ALT; // Default key = 'alt'
+chrome.storage.sync.get("keyID", (data) => {
+  keyID = data.keyID !== undefined ? data.keyID : keyID;
+});
 
 /* Gesture Recognition */
 const gesture_track = {
@@ -173,26 +186,33 @@ const app = Vue.createApp({
       gesture_descriptions,
       islight,
       threshold,
-      keyID: KEY_TYPE.ALT,
+      keyID
     };
   },
   methods: {
     changeTheme: function (state) {
-      this.islight = state;
+      chrome.storage.sync.set({"theme": state}, (response) => {
+        this.islight = response.theme;
+      });
     },
     changemapping: function (gestureIdx, newCmdIdx) {
       if (this.items[gestureIdx] !== undefined) {
         this.items[gestureIdx] = newCmdIdx;
-        // TODO: update value in chrome.sync
+        chrome.storage.sync.set({"mapping": this.items}, () => {});
       }
     },
     changeKey: function (newKeyId) {
-      this.keyID = newKeyId;
+      chrome.storage.sync.set({"keyID": newKeyId}, (response) => {
+        this.keyID = response.keyID;
+      });
     },
   },
   watch: {
     threshold: function (newVal, oldVal) {
-      this.threshold = parseInt(newVal);
+      chrome.storage.sync.set({"threshold": parseInt(newVal)}, (response) => {
+        this.threshold = response.threshold;
+      });
+      
     },
   },
   computed: {
