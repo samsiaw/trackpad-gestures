@@ -39,7 +39,6 @@ const KEY_TYPE = Object.freeze({
   ALT: 0,
   CTRL: 1,
 });
-const KEY_EVENT_HANDLER = [(ev) => ev.altKey, (ev) => ev.ctrlKey];
 
 // Maps Gesture (array index) to Command
 const default_mapping = [0, 1, 4, 3, 5, 6, 8, 9];
@@ -52,7 +51,7 @@ var key = undefined; // TODO Load from chrome.sync
 
 /* Gesture Recognition */
 const gesture_track = {
-  points_limit: 10,
+  points_limit: 4,
   collect_points: false,
   gesture_enabled: true,
   status: {
@@ -86,8 +85,22 @@ const action_handler = (which_gesture, mapping_list) => {
   }
 };
 const gesture_handler = (event, gesture_track, mapping_list, threshold, keyID = -1) => {
-  const key_verify = KEY_EVENT_HANDLER[keyID];
-  if (key_verify && key_verify(event)) {
+  var key_pressed = false;
+  switch(keyID) {
+    case KEY_TYPE.ALT: 
+      key_pressed = event.altKey;
+      break;
+    
+    case KEY_TYPE.CTRL:
+      key_pressed = event.ctrlKey;
+      break;
+    
+    default:
+      key_pressed = false;
+      break;
+  };
+
+  if (key_pressed) {
     const x = event.screenX;
     const y = event.screenY;
 
