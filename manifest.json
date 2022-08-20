@@ -4,12 +4,12 @@
     "author": "siti",
     "description": "An extension that allows you to browse the web productively with your laptop's trackpad and keyboard",
 
-    "permissions": ["scripting", "storage", "sessions", "tabs"],
-    "host_permissions": ["<all_urls>"],
+    "permissions": ["storage", "sessions", "tabs","<all_urls>"],
     "background":{
-        "service_worker": "service-worker.js"
+        "scripts":["/static/js/background.js"],
+        "persistent": false
     },
-    "action":{
+    "browser_action":{
         "default_popup": "views/popup.html",
         "default_icon":{
             "16":"views/icons/research.png"
@@ -25,5 +25,5 @@
             "js": ["static/js/contentScript.js"]
         }
     ],
-    "manifest_version": 3
+    "manifest_version": 2
 }

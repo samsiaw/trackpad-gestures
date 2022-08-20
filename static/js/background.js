@@ -41,7 +41,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
         chrome.tabs.query({}, (tabs) => {
           tabs.forEach((tab) => {
-            chrome.scripting.executeScript({target: {tabID: tab.id}, files: ["./contentScript.js"]});
+            chrome.tabs.executeScript(tabId= tab.id, {file: "./contentScript.js"});
           });
         });
         
@@ -150,22 +150,31 @@ function closeWindow() {
     console.log("Window closed");
   });
 }
-function injectScript(func) {
+// function injectScript(func) {
+//   chrome.tabs.query({ active: true, currentWindow: true }, (tabsArr) => {
+//     chrome.scripting.executeScript({target: {tabID: tabsArr[0].id}, func: func });
+//   });
+// }
+function injectCode(code) {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabsArr) => {
-    chrome.scripting.executeScript({target: {tabID: tabsArr[0].id}, func: func });
+    chrome.tabs.executeScript( tabId = tabsArr[0].id, {code: code});
   });
 }
+
 function back() {
-  injectScript(window.history.back);
+  // injectScript(window.history.back); //v3
+  injectCode("window.history.back()"); //v2
   console.log("back");
 }
 function forward() {
-  injectScript(window.history.forward);
+  // injectScript(window.history.forward); //v3
+  injectCode('window.history.forward()'); //v2
   console.log("forward");
 }
 function home() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabsArr) => {
-    chrome.tabs.update({target: {tabID: tabsArr[0].id}, url: "about:newtab" });
+    // chrome.tabs.update({target: {tabID: tabsArr[0].id}, url: "about:newtab" }); //v3
+    chrome.tabs.update(tabsArr[0].id, { url: "about:newtab" }); //v2
   });
   console.log("Navigated to home tab");
 }
