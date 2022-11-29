@@ -1,0 +1,30 @@
+{
+    "name": "Trackpad Gestures",
+    "version": "1.0.0",
+    "author": "siti",
+    "description": "An extension that allows you to browse the web productively with your laptop's trackpad and keyboard",
+
+    "permissions": ["storage", "sessions", "tabs","<all_urls>"],
+    "background":{
+        "scripts":["/static/js/background.js"],
+        "persistent": false
+    },
+    "browser_action":{
+        "default_popup": "views/popup.html",
+        "default_icon":{
+            "16":"views/icons/research.png"
+        }
+    },
+    "options_ui":{ 
+        "page":"views/options.html",
+        "open_in_tab": true
+    },
+    "content_scripts":[
+        {
+            "matches": ["<all_urls>"],
+            "js": ["static/js/contentScript.js"]
+        }
+    ],
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+    "manifest_version": 2
+}

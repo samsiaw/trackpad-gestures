@@ -29,11 +29,13 @@ const default_key = "alt";
 var mapping = undefined;
 var threshold = undefined;
 var keyID = undefined;
-var storage = undefined;
+var storage = {};
 var theme = false; // False for Dark Theme
 
 chrome.runtime.onInstalled.addListener((details) => {
-    if (details.reason === chrome.runtime.onInstalledReason.INSTALL){
+    // if (details.reason === chrome.runtime.onInstalledReason.INSTALL){
+      if (true){
+        console.log('runtime onInstalledReason '+chrome.runtime.onInstalledReason);
         // Remove previous versions' storage
         chrome.storage.sync.get("tpad_ges", (obj) => {
             chrome.storage.sync.remove("tpad_ges");
@@ -41,7 +43,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
         chrome.tabs.query({}, (tabs) => {
           tabs.forEach((tab) => {
-            chrome.tabs.executeScript(tabId= tab.id, {file: "./contentScript.js"});
+            chrome.tabs.executeScript(tabId= tab.id, {file: "contentScript.js"});
           });
         });
         
@@ -150,12 +152,12 @@ function closeWindow() {
     console.log("Window closed");
   });
 }
-// function injectScript(func) {
+// function injectScript(func) { // v3
 //   chrome.tabs.query({ active: true, currentWindow: true }, (tabsArr) => {
 //     chrome.scripting.executeScript({target: {tabID: tabsArr[0].id}, func: func });
 //   });
 // }
-function injectCode(code) {
+function injectCode(code) { // v2
   chrome.tabs.query({ active: true, currentWindow: true }, (tabsArr) => {
     chrome.tabs.executeScript( tabId = tabsArr[0].id, {code: code});
   });
