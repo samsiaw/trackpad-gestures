@@ -6,14 +6,14 @@
     "permissions": [
         "storage",
         "sessions",
-        "tabs",
+        "activeTab",
         "scripting"
     ],
     "host_permissions": [
         "<all_urls>"
     ],
     "background": {
-        "service_worker": "/static/js/background.js"
+        "service_worker": "/static/js/background_v3.js"
     },
     "action": {
         "default_popup": "views/popup.html",
@@ -31,7 +31,7 @@
                 "<all_urls>"
             ],
             "js": [
-                "static/js/contentScript.js"
+                "/static/js/contentScript.js"
             ]
         }
     ],

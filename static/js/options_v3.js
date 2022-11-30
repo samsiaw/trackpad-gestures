@@ -38,6 +38,25 @@ const ICONCHARS = [
   "&#x21D9",
   "&#x21D6",
 ];
+const DEFAULTMAPPING = [0, 1, 4, 3, 5, 6, 8, 9];
+
+const TRACK = {
+  pointsLimit: 4,
+  collectPoints: false,
+  gestureEnabled: true,
+  status: {
+    firstPoint: undefined,
+    numPoints: 0,
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+  },
+  currentMapping: DEFAULTMAPPING,
+  threshold: 10, // Default value
+  keyID: KEYID.ALT, // Default key = 'alt'
+  theme: false, // Default theme = dark
+};
 
 function createSelectElement(description, optionsTextArray, selectedValue, onChangeHandler) {
   // type: string
@@ -66,54 +85,50 @@ const THEMECHECKBOX = document.getElementById("theme-checkbox");
 
 // Maps Gesture to Command. Numbers represent command index.
 // Index of list represents gesture index
-const DEFAULTMAPPING = [0, 1, 4, 3, 5, 6, 8, 9];
 
 // Load Mappings and Gesture Table
-var currentMapping;
 chrome.storage.sync.get(["mapping"]).then((data) => {
   console.log(data);
   console.log(data.mapping);
-  currentMapping = data.mapping ?? DEFAULTMAPPING;
-  
+  TRACK.currentMapping = data.mapping ?? DEFAULTMAPPING;
+
   // Mapping updated. Load the gesture table
   for (let i in GESTUREDESCRIPTIONS) {
     var row = GESTURETABLE.insertRow(-1);
     var gestureCell = row.insertCell(0);
     gestureCell.innerHTML = GESTUREDESCRIPTIONS[i];
-  
+
     var iconCell = row.insertCell(1);
     iconCell.innerHTML = ICONCHARS[i];
-  
+
     // create selector for gesture table
     var commandCell = row.insertCell(2);
-    var sel = createSelectElement("Select a command", CMDDESCRIPTIONS, currentMapping[i], null); // TODO: Add onchange handler for each selector
+    var sel = createSelectElement("Select a command", CMDDESCRIPTIONS, TRACK.currentMapping[i], null); // TODO: Add onchange handler for each selector
     commandCell.appendChild(sel);
   }
 });
 
 
-var threshold = 10;
 chrome.storage.sync.get(["threshold"]).then((data) => {
-  threshold = data.threshold ?? threshold;
+  TRACK.threshold = data.threshold ?? TRACK.threshold;
 
   // Threshold data acquired. Update value
   let thresholdInput = document.getElementById("threshold-input");
   let thresholdSpan = document.getElementById("threshold-span");
 
-  thresholdInput.value = threshold;
-  thresholdSpan.innerHTML = threshold;
+  thresholdInput.value = TRACK.threshold;
+  thresholdSpan.innerHTML = TRACK.threshold;
 
   // TODO: Add onchange handler to threshold-input
 });
 
-var keyID = KEYID.ALT; // Default key = 'alt'
 chrome.storage.sync.get(["keyID"]).then((data) => {
-  keyID = data.keyID !== undefined ? data.keyID : keyID;
+  TRACK.keyID = data.keyID !== undefined ? data.keyID : TRACK.keyID;
 
   // Update the trigger table
   let selectionCell = TRIGGERTABLE.rows[1].cells[1];
 
-  let sel = createSelectElement("Select a trigger key", KEYDESCRIPTIONS, keyID, null);
+  let sel = createSelectElement("Select a trigger key", KEYDESCRIPTIONS, TRACK.keyID, null);
   selectionCell.appendChild(sel);
 
   // TODO: Add onchange handler for selector
@@ -121,23 +136,38 @@ chrome.storage.sync.get(["keyID"]).then((data) => {
 
 // TODO: Gesture recognition, Playground
 
-/* Gesture Recognition */
-const gesture_track = {
-  points_limit: 4,
-  collect_points: false,
-  gesture_enabled: true,
-  status: {
-    first_point: undefined,
-    num_points: 0,
-    up: false,
-    down: false,
-    left: false,
-    right: false,
-  },
-};
+/* Theming */
+function changeThemeRecurse(parentElement, isLight) {
+  parentElement.setAttribute("theme", isLight ? "light" : "dark");
+  for (let i = 0; i < parentElement.children.length; i++) {
+    changeThemeRecurse(parentElement.children[i], isLight);
+  }
+}
 
-const action_handler = (which_gesture, mapping_list) => {
-  const str_to_gesture = {
+function changeTheme(isLight) {
+  changeThemeRecurse(BODY, isLight);
+
+  // TODO: Update stored theme in background.
+  // TODO: Change text for themer
+
+}
+
+
+chrome.storage.sync.get(["theme"]).then((data) => {
+  TRACK.theme = data.theme !== undefined ? data.theme : TRACK.theme;
+
+  // Change the theme and update the theme checkbox's state
+  THEMECHECKBOX.checked = TRACK.theme;
+  changeTheme(TRACK.theme);
+
+  THEMECHECKBOX.onchange = () => {
+    TRACK.theme = THEMECHECKBOX.checked;
+    changeTheme(TRACK.theme);
+  }
+});
+
+const actionHandler = (gestureStr) => {
+  const strToGestureID = {
     msR: 5,
     msL: 4,
     msD: 0,
@@ -147,69 +177,67 @@ const action_handler = (which_gesture, mapping_list) => {
     msLU: 7,
     msRU: 2,
   };
-  const gesture_id = str_to_gesture[which_gesture];
-  if (gesture_id !== undefined) {
-    const pg_ges = document.getElementById("playground-gesture");
-    const pg_cmd = document.getElementById("playground-command");
-    pg_ges.innerHTML = GESTUREDESCRIPTIONS[gesture_id];
-    pg_cmd.innerHTML = CMDDESCRIPTIONS[mapping_list[gesture_id]];
+  const gestureID = strToGestureID[gestureStr];
+  if (gestureID !== undefined) {
+    document.getElementById("playground-gesture").innerHTML = GESTUREDESCRIPTIONS[gestureID];
+    document.getElementById("playground-command").innerHTML = CMDDESCRIPTIONS[TRACK.currentMapping[gestureID]];
   } else {
     console.log("action_handler: unknown gesture code");
   }
 };
 
-const gesture_handler = (event, gesture_track, mapping_list, threshold, keyID = -1) => {
-  var key_pressed = false;
-  switch (keyID) {
+const gestureHandler = (event) => {
+  let keyPressed = false;
+  switch (TRACK.keyID) { // Have we pressed the trigger key
     case KEYID.ALT:
-      key_pressed = event.altKey;
+      keyPressed = event.altKey;
       break;
 
     case KEYID.CTRL:
-      key_pressed = event.ctrlKey;
+      keyPressed = event.ctrlKey;
       break;
 
     default:
-      key_pressed = false;
+      keyPressed = false;
       break;
   };
 
-  if (key_pressed) {
+  if (keyPressed) {
     const x = event.screenX;
     const y = event.screenY;
 
-    if (gesture_track.collect_points) {
-      const first_point = gesture_track.status.first_point;
+    if (TRACK.collectPoints) {
+      const first_point = TRACK.status.firstPoint;
 
-      if (gesture_track.status.num_points < gesture_track.points_limit) {
+      if (TRACK.status.numPoints < TRACK.pointsLimit) {
         // collect points
         if (!first_point) {
-          gesture_track.status.first_point = [x, y];
+          TRACK.status.firstPoint = [x, y];
         } else {
           const dx = x - first_point[0];
           const dy = y - first_point[1];
 
-          if (Math.abs(dy) > threshold) {
+          if (Math.abs(dy) > TRACK.threshold) {
             if (dy < 0) {
-              gesture_track.status.up = true;
+              TRACK.status.up = true;
             } else if (dy > 0) {
-              gesture_track.status.down = true;
+              TRACK.status.down = true;
             }
           }
-          if (Math.abs(dx) > threshold) {
+          if (Math.abs(dx) > TRACK.threshold) {
             if (dx < 0) {
-              gesture_track.status.left = true;
+              TRACK.status.left = true;
             } else if (dx > 0) {
-              gesture_track.status.right = true;
+              TRACK.status.right = true;
             }
           }
         }
-        gesture_track.status.num_points++;
+        TRACK.status.numPoints++;
       } else {
         // Done collecting points
         // Recognize gesture and reset tracking information
-        gesture_track.collect_points = false;
-        const { up, down, left, right } = gesture_track.status;
+        TRACK.collectPoints = false;
+        const { up, down, left, right } = TRACK.status;
 
         let str = "ms";
         if (left) str += "L";
@@ -218,47 +246,29 @@ const gesture_handler = (event, gesture_track, mapping_list, threshold, keyID = 
         if (up) str += "U";
         else if (down) str += "D";
 
-        gesture_track.status = {
-          first_point: undefined,
-          num_points: 0,
+        TRACK.status = {
+          firstPoint: undefined,
+          numPoints: 0,
           up: false,
           down: false,
           left: false,
           right: false,
         };
 
-        action_handler(str, mapping_list);
+        actionHandler(str);
       }
     } else {
       // Start Tracking / Collecting Points to recognize gesture
-      gesture_track.collect_points = true;
-      gesture_track.status.first_point = [x, y];
+      TRACK.collectPoints = true;
+      TRACK.status.firstPoint = [x, y];
     }
   }
 };
 
-function changeTheme(parentElement, isLight) {
-  parentElement.setAttribute("theme", isLight ? "light" : "dark");
-  for (let i = 0; i < parentElement.children.length; i++){
-    changeTheme(parentElement.children[i], isLight);
-  }
-}
 
-var isLight = false; // Default theme = Dark
-chrome.storage.sync.get(["theme"]).then((data) => {
-  isLight = data.theme;
-
-  // Change the theme and update the theme checkbox's state
-  changeTheme(BODY, isLight);
-  THEMECHECKBOX.checked = isLight;
-
-  THEMECHECKBOX.onchange = () => {
-    isLight = THEMECHECKBOX.checked;
-    changeTheme(BODY, isLight);
-  }
-});
-
-
+/* Playground */
+const PLAYGROUND = document.getElementById("playground");
+PLAYGROUND.addEventListener('mousemove', gestureHandler);
 
 document.addEventListener("DOMContentLoaded", () => {
   console.info("Hello World!");
