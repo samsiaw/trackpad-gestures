@@ -273,3 +273,5 @@ PLAYGROUND.addEventListener('mousemove', gestureHandler);
 document.addEventListener("DOMContentLoaded", () => {
   console.info("Hello World!");
 });
+
+// TODO: Test content script
