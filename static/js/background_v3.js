@@ -23,9 +23,9 @@ const KEY_TYPE = Object.freeze({
   CTRL: 1,
 });
 
-const default_mapping = [0, 1, 4, 3, 5, 6, 8, 9];
-const default_threshold = 5;
-const default_key = "alt";
+const defaultMapping = [0, 1, 4, 3, 5, 6, 8, 9];
+const defaultThreshold = 5;
+const defaultKeyID = 0;
 var mapping = undefined;
 var threshold = undefined;
 var keyID = undefined;
@@ -55,16 +55,16 @@ chrome.runtime.onInstalled.addListener((details) => {
         
         let mappingPromise = chrome.storage.sync.get(["mapping"]);
         mappingPromise.then((data) => {
-          mapping = data.mapping ?? default_mapping;
+          mapping = data.mapping ?? defaultMapping;
         });
 
         let thresholdPromise = chrome.storage.sync.get(["threshold"]);
         thresholdPromise.then((data) => {
-            threshold = data.threshold ?? default_threshold;
+            threshold = data.threshold ?? defaultThreshold;
         });
         let keyPromise = chrome.storage.sync.get(["key"]);
         keyPromise.then((data) => {
-            keyID = data.key ?? default_key;
+            keyID = data.key ?? defaultKeyID;
         });
         let themePromise = chrome.storage.sync.get(["theme"]);
         keyPromise.then((data) => {
@@ -212,3 +212,10 @@ function home() {
     }
   })
 }
+
+// TODO:
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'sync') {
+
+  }
+})

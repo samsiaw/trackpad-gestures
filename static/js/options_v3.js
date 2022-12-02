@@ -1,4 +1,4 @@
-const CMDDESCRIPTIONS = [
+const CMDDESCRIPTIONS = Object.freeze([
   "Open New Tab",
   "Open New Background Tab",
   "Close Tab",
@@ -9,9 +9,9 @@ const CMDDESCRIPTIONS = [
   "Open New Window",
   "Close Active Window",
   "Go Home",
-];
+]);
 
-const GESTUREDESCRIPTIONS = [
+const GESTUREDESCRIPTIONS = Object.freeze([
   "mouse Down",
   "mouse Up",
   "mouse Diagonal Left to Right (Up)",
@@ -20,9 +20,9 @@ const GESTUREDESCRIPTIONS = [
   "mouse Right",
   "mouse Diagonal Right to Left (Down)",
   "mouse Diagonal Right to Left (Up)",
-];
+]);
 
-const KEYDESCRIPTIONS = ["Alt", "Ctrl"];
+const KEYDESCRIPTIONS = Object.freeze(["Alt", "Ctrl"]);
 const KEYID = Object.freeze({
   ALT: 0,
   CTRL: 1,
@@ -54,9 +54,12 @@ const TRACK = {
   },
   currentMapping: DEFAULTMAPPING,
   threshold: 10, // Default value
-  keyID: KEYID.ALT, // Default key = 'alt'
+  keyID: 0, // Default key = 'alt'
   theme: false, // Default theme = dark
 };
+
+const THRESHOLDMIN = 5;
+const THRESHOLDMAX = 40;
 
 function createSelectElement(description, optionsTextArray, selectedValue, onChangeHandler) {
   // type: string
@@ -92,6 +95,25 @@ chrome.storage.sync.get(["mapping"]).then((data) => {
   console.log(data.mapping);
   TRACK.currentMapping = data.mapping ?? DEFAULTMAPPING;
 
+  let createSelOnChangeHandler = (gestureID) => {
+
+    function selOnChangeHandler(event) {
+      let cmdID = event.target.value;
+      let cmdDescription = CMDDESCRIPTIONS[cmdID];
+      let gestureDescription = GESTUREDESCRIPTIONS[gestureID];
+
+      if (cmdDescription !== undefined && gestureDescription !== undefined) {
+        TRACK.currentMapping[gestureID] = cmdID;
+
+        chrome.storage.sync.set({"mapping": TRACK.currentMapping}).then(() => {
+          console.log('Gesture: '+gestureDescription+' changed its command to '+cmdDescription);
+        });
+
+      }
+    }
+    return selOnChangeHandler;
+  }
+
   // Mapping updated. Load the gesture table
   for (let i in GESTUREDESCRIPTIONS) {
     var row = GESTURETABLE.insertRow(-1);
@@ -103,7 +125,8 @@ chrome.storage.sync.get(["mapping"]).then((data) => {
 
     // create selector for gesture table
     var commandCell = row.insertCell(2);
-    var sel = createSelectElement("Select a command", CMDDESCRIPTIONS, TRACK.currentMapping[i], null); // TODO: Add onchange handler for each selector
+
+    var sel = createSelectElement("Select a command", CMDDESCRIPTIONS, TRACK.currentMapping[i], createSelOnChangeHandler(i));
     commandCell.appendChild(sel);
   }
 });
@@ -119,7 +142,21 @@ chrome.storage.sync.get(["threshold"]).then((data) => {
   thresholdInput.value = TRACK.threshold;
   thresholdSpan.innerHTML = TRACK.threshold;
 
-  // TODO: Add onchange handler to threshold-input
+  thresholdInput.onchange = (event) => {
+    // Update the synced value
+    let threshold = event.target.value;
+    if (threshold > THRESHOLDMAX){
+      threshold = THRESHOLDMAX;
+    } else if (threshold < THRESHOLDMIN){
+      threshold = THRESHOLDMIN;
+    }
+    TRACK.threshold = threshold;
+    thresholdInput.value = threshold;
+
+    chrome.storage.sync.set({"threshold" : threshold}).then(() => {
+      console.log("threshold updated to " + threshold);
+    });
+  }
 });
 
 chrome.storage.sync.get(["keyID"]).then((data) => {
@@ -128,13 +165,20 @@ chrome.storage.sync.get(["keyID"]).then((data) => {
   // Update the trigger table
   let selectionCell = TRIGGERTABLE.rows[1].cells[1];
 
-  let sel = createSelectElement("Select a trigger key", KEYDESCRIPTIONS, TRACK.keyID, null);
+  let selOnChangeHandler = (event) => {
+    let keyID = event.target.value;
+    let triggerDescription = KEYDESCRIPTIONS[keyID];
+
+    if (triggerDescription !== undefined) {
+      chrome.storage.sync.set({"keyID": keyID}).then(() => {
+        console.log("Changed key to "+triggerDescription);
+      });
+    }
+  }
+  let sel = createSelectElement("Select a trigger key", KEYDESCRIPTIONS, TRACK.keyID, selOnChangeHandler);
   selectionCell.appendChild(sel);
 
-  // TODO: Add onchange handler for selector
 });
-
-// TODO: Gesture recognition, Playground
 
 /* Theming */
 function changeThemeRecurse(parentElement, isLight) {
@@ -147,9 +191,12 @@ function changeThemeRecurse(parentElement, isLight) {
 function changeTheme(isLight) {
   changeThemeRecurse(BODY, isLight);
 
-  // TODO: Update stored theme in background.
-  // TODO: Change text for themer
-
+  let themeLabel = document.getElementById("theme-label");
+  if (isLight){
+    themeLabel.innerHTML = "Change theme to dark";
+  } else {
+    themeLabel.innerHTML = "Change theme to light";
+  }
 }
 
 
@@ -162,7 +209,9 @@ chrome.storage.sync.get(["theme"]).then((data) => {
 
   THEMECHECKBOX.onchange = () => {
     TRACK.theme = THEMECHECKBOX.checked;
-    changeTheme(TRACK.theme);
+    chrome.storage.sync.set({"theme": TRACK.theme}).then(() => {
+      changeTheme(TRACK.theme);
+    });
   }
 });
 
@@ -188,12 +237,12 @@ const actionHandler = (gestureStr) => {
 
 const gestureHandler = (event) => {
   let keyPressed = false;
-  switch (TRACK.keyID) { // Have we pressed the trigger key
-    case KEYID.ALT:
+  switch (TRACK.keyID) { // Have we pressed the trigger key?
+    case 0:
       keyPressed = event.altKey;
       break;
 
-    case KEYID.CTRL:
+    case 1:
       keyPressed = event.ctrlKey;
       break;
 
@@ -274,4 +323,4 @@ document.addEventListener("DOMContentLoaded", () => {
   console.info("Hello World!");
 });
 
-// TODO: Test content script
+// TODO: Change max/min of threshold from options_v3.js
