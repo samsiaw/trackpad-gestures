@@ -43,7 +43,6 @@ const DEFAULTMAPPING = [0, 1, 4, 3, 5, 6, 8, 9];
 const TRACK = {
   pointsLimit: 4,
   collectPoints: false,
-  gestureEnabled: true,
   status: {
     firstPoint: undefined,
     numPoints: 0,
@@ -103,7 +102,7 @@ chrome.storage.sync.get(["mapping"]).then((data) => {
       let gestureDescription = GESTUREDESCRIPTIONS[gestureID];
 
       if (cmdDescription !== undefined && gestureDescription !== undefined) {
-        TRACK.currentMapping[gestureID] = cmdID;
+        TRACK.currentMapping[gestureID] = Number(cmdID);
 
         chrome.storage.sync.set({"mapping": TRACK.currentMapping}).then(() => {
           console.log('Gesture: '+gestureDescription+' changed its command to '+cmdDescription);
@@ -118,7 +117,7 @@ chrome.storage.sync.get(["mapping"]).then((data) => {
   for (let i in GESTUREDESCRIPTIONS) {
     var row = GESTURETABLE.insertRow(-1);
     var gestureCell = row.insertCell(0);
-    gestureCell.innerHTML = GESTUREDESCRIPTIONS[i];
+    gestureCell.innerText = GESTUREDESCRIPTIONS[i];
 
     var iconCell = row.insertCell(1);
     iconCell.innerHTML = ICONCHARS[i];
@@ -140,7 +139,7 @@ chrome.storage.sync.get(["threshold"]).then((data) => {
   let thresholdSpan = document.getElementById("threshold-span");
 
   thresholdInput.value = TRACK.threshold;
-  thresholdSpan.innerHTML = TRACK.threshold;
+  thresholdSpan.innerText = TRACK.threshold;
 
   thresholdInput.onchange = (event) => {
     // Update the synced value
@@ -152,8 +151,9 @@ chrome.storage.sync.get(["threshold"]).then((data) => {
     }
     TRACK.threshold = threshold;
     thresholdInput.value = threshold;
+    thresholdSpan.innerText = TRACK.threshold;
 
-    chrome.storage.sync.set({"threshold" : threshold}).then(() => {
+    chrome.storage.sync.set({"threshold" : Number(threshold)}).then(() => {
       console.log("threshold updated to " + threshold);
     });
   }
@@ -161,7 +161,7 @@ chrome.storage.sync.get(["threshold"]).then((data) => {
 
 chrome.storage.sync.get(["keyID"]).then((data) => {
   TRACK.keyID = data.keyID !== undefined ? data.keyID : TRACK.keyID;
-
+  console.log("stored keyID:"+TRACK.keyID);
   // Update the trigger table
   let selectionCell = TRIGGERTABLE.rows[1].cells[1];
 
@@ -170,11 +170,13 @@ chrome.storage.sync.get(["keyID"]).then((data) => {
     let triggerDescription = KEYDESCRIPTIONS[keyID];
 
     if (triggerDescription !== undefined) {
-      chrome.storage.sync.set({"keyID": keyID}).then(() => {
+      chrome.storage.sync.set({"keyID": Number(keyID)}).then(() => {
+        TRACK.keyID = keyID;
         console.log("Changed key to "+triggerDescription);
       });
     }
-  }
+  };
+
   let sel = createSelectElement("Select a trigger key", KEYDESCRIPTIONS, TRACK.keyID, selOnChangeHandler);
   selectionCell.appendChild(sel);
 
@@ -193,9 +195,9 @@ function changeTheme(isLight) {
 
   let themeLabel = document.getElementById("theme-label");
   if (isLight){
-    themeLabel.innerHTML = "Change theme to dark";
+    themeLabel.innerText = "Change theme to dark";
   } else {
-    themeLabel.innerHTML = "Change theme to light";
+    themeLabel.innerText = "Change theme to light";
   }
 }
 
@@ -228,8 +230,8 @@ const actionHandler = (gestureStr) => {
   };
   const gestureID = strToGestureID[gestureStr];
   if (gestureID !== undefined) {
-    document.getElementById("playground-gesture").innerHTML = GESTUREDESCRIPTIONS[gestureID];
-    document.getElementById("playground-command").innerHTML = CMDDESCRIPTIONS[TRACK.currentMapping[gestureID]];
+    document.getElementById("playground-gesture").innerText = GESTUREDESCRIPTIONS[gestureID];
+    document.getElementById("playground-command").innerText = CMDDESCRIPTIONS[TRACK.currentMapping[gestureID]];
   } else {
     console.log("action_handler: unknown gesture code");
   }

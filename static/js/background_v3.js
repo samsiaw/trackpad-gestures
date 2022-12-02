@@ -1,5 +1,5 @@
 //XXX: currently supporting 10 commands for 8 gestures
-const commands = [
+const COMMANDS = [
   newTab,
   newBgTab,
   closeTab,
@@ -12,13 +12,14 @@ const commands = [
   home,
 ];
 
-const MSG_TYPE = Object.freeze({
+const MSGTYPE = Object.freeze({
     GESTURE: 0,
-    threshold: 1,
+    THRESHOLD: 1,
     KEY: 2,
+    STATUS: 3,
 });
 
-const KEY_TYPE = Object.freeze({
+const KEYID = Object.freeze({
   ALT: 0,
   CTRL: 1,
 });
@@ -38,9 +39,6 @@ chrome.runtime.onInstalled.addListener((details) => {
     // if (details.reason === chrome.runtime.onInstalledReason.INSTALL){ // TODO: This works, (INSTALL, UPDATE, CHROME_UPDATE, SHARED_MODULE_UPDATE)
       if (details.reason === chrome.runtime.OnInstalledReason.INSTALL || details.reason === chrome.runtime.OnInstalledReason.UPDATE){
         console.log("new install / update");
-        // console.log(chrome.runtime);
-        // console.log(chrome.runtime.getURL('/static/js/contentScript.js'));
-        // console.log(MANIFEST);
 
         // Remove previous versions' storage
         chrome.storage.sync.remove("tpad_ges");
@@ -55,16 +53,17 @@ chrome.runtime.onInstalled.addListener((details) => {
         
         let mappingPromise = chrome.storage.sync.get(["mapping"]);
         mappingPromise.then((data) => {
-          mapping = data.mapping ?? defaultMapping;
+          mapping = data.mapping !== undefined ? data.mapping : defaultMapping;
         });
 
         let thresholdPromise = chrome.storage.sync.get(["threshold"]);
         thresholdPromise.then((data) => {
-            threshold = data.threshold ?? defaultThreshold;
+            threshold = data.threshold !== undefined ? data.threshold : defaultThreshold;
         });
-        let keyPromise = chrome.storage.sync.get(["key"]);
+
+        let keyPromise = chrome.storage.sync.get(["keyID"]);
         keyPromise.then((data) => {
-            keyID = data.key ?? defaultKeyID;
+            keyID = data.keyID !== undefined ? data.keyID : defaultKeyID;
         });
         let themePromise = chrome.storage.sync.get(["theme"]);
         keyPromise.then((data) => {
@@ -82,7 +81,6 @@ chrome.runtime.onInstalled.addListener((details) => {
 
           chrome.storage.sync.set(storage).then(() => {
             console.log(storage);
-            console.log('storage set');
           });
   
           if (chrome.runtime.openOptionsPage){
@@ -94,36 +92,38 @@ chrome.runtime.onInstalled.addListener((details) => {
     }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    const msg_type = message.type;
-    switch (msg_type) {
-        case MSG_TYPE.GESTURE:       
-            chrome.storage.sync.get("mapping", (data) => {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { // TODO: Possible cross-site scripting from websites. investigate https://developer.chrome.com/docs/extensions/mv3/messaging/#cross-site-scripting
+    switch (message.type) {
+        case MSGTYPE.GESTURE:
+            chrome.storage.sync.get(["mapping"]).then((data) => {
               mapping = data.mapping;
-              storage = Object.assign(storage ? storage : {}, {mapping});
-            });
-            const command = storage.mapping[message.gesture_id];
-            command ? command() : undefined;
-            // console.log(`b: command ${command}`);
+              let commandID = mapping[message.value];
+              let action = commandID !== undefined ? COMMANDS[commandID] : undefined;
+
+              if (action !== undefined){
+                action();
+                sendResponse({type: MSGTYPE.STATUS, value: true}); // Tell extension you executed the command
+              } else {
+                sendResponse({type: MSGTYPE.STATUS, value: false}); // Tell extension you could not execute the command
+              }
+
+              });
             break;
         
-        case MSG_TYPE.threshold: 
-            chrome.storage.sync.get("threshold", (data) => {
+        case MSGTYPE.THRESHOLD: // A tab is requesting threshold value
+            chrome.storage.sync.get(["threshold"]).then((data) => {
                 threshold = data.threshold;
-                storage = Object.assign(storage ?? {}, {threshold});
+                sendResponse({type: MSGTYPE.THRESHOLD, value: threshold});
             });
-            // TODO: Send the new threshold value to all tabs
+            break;
         
-        case MSG_TYPE.KEY:
-            chrome.storage.sync.get("key", (data) => {
-                key = data.key;
-                storage = Object.assign(storage ?? {}, {key});
+        case MSGTYPE.KEY: // A tab is requesting key id
+            chrome.storage.sync.get(["keyID"]).then((data) => {
+                keyID = data.keyID;
+                sendResponse({type: MSGTYPE.KEY, value: keyID});
             });
-            // TODO: Send the new key value to all tabs
-
+            break;
     };
-
-
     return true; // (keeps sendResonse func valid)
   
 });
@@ -216,6 +216,6 @@ function home() {
 // TODO:
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync') {
-
+    // TODO: When a value is updated, tell all tabs that it's been updated? OR Decide whether tabs should individually ask for updated value...
   }
 })

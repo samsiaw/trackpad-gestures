@@ -13,7 +13,7 @@
         "<all_urls>"
     ],
     "background": {
-        "service_worker": "/static/js/background_v3.js"
+        "service_worker": "static/js/background_v3.js"
     },
     "action": {
         "default_popup": "views/popup.html",
@@ -31,7 +31,7 @@
                 "<all_urls>"
             ],
             "js": [
-                "/static/js/contentScript.js"
+                "static/js/content_script_v3.js"
             ]
         }
     ],
