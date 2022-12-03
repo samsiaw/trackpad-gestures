@@ -25,8 +25,8 @@ const KEYID = Object.freeze({
 });
 
 const defaultMapping = [0, 1, 4, 3, 5, 6, 8, 9];
-const defaultThreshold = 5;
-const defaultKeyID = 0;
+const defaultThreshold = 15;
+const defaultKeyID = 0; // Default key = 'alt'
 var mapping = undefined;
 var threshold = undefined;
 var keyID = undefined;
@@ -134,6 +134,7 @@ async function getActiveTab() {
   return tab;
 }
 
+// TODO: Test all commands
 
 function newTab() {
   chrome.tabs.create({ active: true });
@@ -205,7 +206,7 @@ function forward() {
 function home() {
   getActiveTab().then((tab) => {
     if (tab){
-      chrome.tabs.update({target: {tabID: tab.id}, url: "about:newtab" }); //v3
+      chrome.tabs.update(tab.id,{ url: "about:newtab" }); //v3
       console.log("Navigated to home tab");
     } else {
       console.log("home: cannot find active tab");
@@ -213,7 +214,6 @@ function home() {
   })
 }
 
-// TODO:
 chrome.storage.onChanged.addListener((changes, namespace) => {
   if (namespace === 'sync') {
     // TODO: When a value is updated, tell all tabs that it's been updated? OR Decide whether tabs should individually ask for updated value...

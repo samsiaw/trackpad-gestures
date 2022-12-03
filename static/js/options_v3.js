@@ -52,7 +52,7 @@ const TRACK = {
     right: false,
   },
   currentMapping: DEFAULTMAPPING,
-  threshold: 10, // Default value
+  threshold: 15, // Default value
   keyID: 0, // Default key = 'alt'
   theme: false, // Default theme = dark
 };
@@ -104,8 +104,8 @@ chrome.storage.sync.get(["mapping"]).then((data) => {
       if (cmdDescription !== undefined && gestureDescription !== undefined) {
         TRACK.currentMapping[gestureID] = Number(cmdID);
 
-        chrome.storage.sync.set({"mapping": TRACK.currentMapping}).then(() => {
-          console.log('Gesture: '+gestureDescription+' changed its command to '+cmdDescription);
+        chrome.storage.sync.set({ "mapping": TRACK.currentMapping }).then(() => {
+          console.log('Gesture: ' + gestureDescription + ' changed its command to ' + cmdDescription);
         });
 
       }
@@ -144,24 +144,28 @@ chrome.storage.sync.get(["threshold"]).then((data) => {
   thresholdInput.onchange = (event) => {
     // Update the synced value
     let threshold = event.target.value;
-    if (threshold > THRESHOLDMAX){
+    if (threshold > THRESHOLDMAX) {
       threshold = THRESHOLDMAX;
-    } else if (threshold < THRESHOLDMIN){
+    } else if (threshold < THRESHOLDMIN) {
       threshold = THRESHOLDMIN;
     }
     TRACK.threshold = threshold;
     thresholdInput.value = threshold;
     thresholdSpan.innerText = TRACK.threshold;
 
-    chrome.storage.sync.set({"threshold" : Number(threshold)}).then(() => {
+    chrome.storage.sync.set({ "threshold": Number(threshold) }).then(() => {
       console.log("threshold updated to " + threshold);
     });
+  }
+
+  thresholdInput.oninput = (event) => {
+    thresholdSpan.innerText = event.target.value;
   }
 });
 
 chrome.storage.sync.get(["keyID"]).then((data) => {
   TRACK.keyID = data.keyID !== undefined ? data.keyID : TRACK.keyID;
-  console.log("stored keyID:"+TRACK.keyID);
+  console.log("stored keyID:" + TRACK.keyID);
   // Update the trigger table
   let selectionCell = TRIGGERTABLE.rows[1].cells[1];
 
@@ -170,9 +174,9 @@ chrome.storage.sync.get(["keyID"]).then((data) => {
     let triggerDescription = KEYDESCRIPTIONS[keyID];
 
     if (triggerDescription !== undefined) {
-      chrome.storage.sync.set({"keyID": Number(keyID)}).then(() => {
+      chrome.storage.sync.set({ "keyID": Number(keyID) }).then(() => {
         TRACK.keyID = keyID;
-        console.log("Changed key to "+triggerDescription);
+        console.log("Changed key to " + triggerDescription);
       });
     }
   };
@@ -194,7 +198,7 @@ function changeTheme(isLight) {
   changeThemeRecurse(BODY, isLight);
 
   let themeLabel = document.getElementById("theme-label");
-  if (isLight){
+  if (isLight) {
     themeLabel.innerText = "Change theme to dark";
   } else {
     themeLabel.innerText = "Change theme to light";
@@ -211,115 +215,122 @@ chrome.storage.sync.get(["theme"]).then((data) => {
 
   THEMECHECKBOX.onchange = () => {
     TRACK.theme = THEMECHECKBOX.checked;
-    chrome.storage.sync.set({"theme": TRACK.theme}).then(() => {
+    chrome.storage.sync.set({ "theme": TRACK.theme }).then(() => {
       changeTheme(TRACK.theme);
     });
   }
 });
 
 const actionHandler = (gestureStr) => {
-  const strToGestureID = {
-    msR: 5,
-    msL: 4,
-    msD: 0,
-    msU: 1,
-    msLD: 6,
-    msRD: 3,
-    msLU: 7,
-    msRU: 2,
-  };
-  const gestureID = strToGestureID[gestureStr];
-  if (gestureID !== undefined) {
-    document.getElementById("playground-gesture").innerText = GESTUREDESCRIPTIONS[gestureID];
-    document.getElementById("playground-command").innerText = CMDDESCRIPTIONS[TRACK.currentMapping[gestureID]];
-  } else {
-    console.log("action_handler: unknown gesture code");
-  }
-};
-
-const gestureHandler = (event) => {
-  let keyPressed = false;
-  switch (TRACK.keyID) { // Have we pressed the trigger key?
-    case 0:
-      keyPressed = event.altKey;
-      break;
-
-    case 1:
-      keyPressed = event.ctrlKey;
-      break;
-
-    default:
-      keyPressed = false;
-      break;
-  };
-
-  if (keyPressed) {
-    const x = event.screenX;
-    const y = event.screenY;
-
-    if (TRACK.collectPoints) {
-      const first_point = TRACK.status.firstPoint;
-
-      if (TRACK.status.numPoints < TRACK.pointsLimit) {
-        // collect points
-        if (!first_point) {
-          TRACK.status.firstPoint = [x, y];
-        } else {
-          const dx = x - first_point[0];
-          const dy = y - first_point[1];
-
-          if (Math.abs(dy) > TRACK.threshold) {
-            if (dy < 0) {
-              TRACK.status.up = true;
-            } else if (dy > 0) {
-              TRACK.status.down = true;
-            }
-          }
-          if (Math.abs(dx) > TRACK.threshold) {
-            if (dx < 0) {
-              TRACK.status.left = true;
-            } else if (dx > 0) {
-              TRACK.status.right = true;
-            }
-          }
-        }
-        TRACK.status.numPoints++;
-      } else {
-        // Done collecting points
-        // Recognize gesture and reset tracking information
-        TRACK.collectPoints = false;
-        const { up, down, left, right } = TRACK.status;
-
-        let str = "ms";
-        if (left) str += "L";
-        else if (right) str += "R";
-
-        if (up) str += "U";
-        else if (down) str += "D";
-
-        TRACK.status = {
-          firstPoint: undefined,
-          numPoints: 0,
-          up: false,
-          down: false,
-          left: false,
-          right: false,
-        };
-
-        actionHandler(str);
-      }
+  if (TRACK.status.firstPoint !== undefined) {
+    const strToGestureID = {
+      msR: 5,
+      msL: 4,
+      msD: 0,
+      msU: 1,
+      msLD: 6,
+      msRD: 3,
+      msLU: 7,
+      msRU: 2,
+    };
+    const gestureID = strToGestureID[gestureStr];
+    if (gestureID !== undefined) {
+      document.getElementById("playground-gesture").innerText = GESTUREDESCRIPTIONS[gestureID];
+      document.getElementById("playground-command").innerText = CMDDESCRIPTIONS[TRACK.currentMapping[gestureID]];
     } else {
-      // Start Tracking / Collecting Points to recognize gesture
-      TRACK.collectPoints = true;
-      TRACK.status.firstPoint = [x, y];
+      console.log("action_handler: couldn't recognize gesture");
     }
   }
 };
 
+function resetTrackedGesture(collectPoints) {
+  Object.assign(TRACK, {
+    collectPoints,
+    status: {
+      firstPoint: undefined,
+      numPoints: 0,
+      up: false,
+      down: false,
+      left: false,
+      right: false,
+    },
+  });
+};
+
+const mouseMoveHandler = (event) => {
+  if (TRACK.collectPoints) {
+    const x = event.screenX;
+    const y = event.screenY;
+    const first_point = TRACK.status.firstPoint;
+
+      // collect points
+    if (first_point === undefined) {
+      TRACK.status.firstPoint = [x, y];
+    } else {
+      const dx = x - first_point[0];
+      const dy = y - first_point[1];
+
+      if (Math.abs(dy) > TRACK.threshold) {
+        if (dy < 0) {
+          TRACK.status.up = true;
+        } else if (dy > 0) {
+          TRACK.status.down = true;
+        }
+      }
+      if (Math.abs(dx) > TRACK.threshold) {
+        if (dx < 0) {
+          TRACK.status.left = true;
+        } else if (dx > 0) {
+          TRACK.status.right = true;
+        }
+      }
+    }
+
+    TRACK.status.numPoints++;
+  }
+};
+
+const keyUpHandler = (event) => {
+  if (TRACK.collectPoints) {
+    // Recognize gesture and reset gesture tracking information
+    const { up, down, left, right } = TRACK.status;
+
+    let str = "ms";
+    if (left) str += "L";
+    else if (right) str += "R";
+
+    if (up) str += "U";
+    else if (down) str += "D";
+
+    actionHandler(str);
+    resetTrackedGesture(false);
+    // console.log("stop tracking. execute action");
+  }
+};
+
+const keyDownHandler = (event) => {
+  let keyPressed = false;
+  switch (Number(TRACK.keyID)){
+    case 1:
+      keyPressed = event.key === 'Control';
+      break;
+    
+    case 0:
+      keyPressed = event.key === 'Alt';
+      break;
+  }
+
+  if (keyPressed) {
+    // console.log("start tracking");
+    resetTrackedGesture(true);
+  }
+};
 
 /* Playground */
 const PLAYGROUND = document.getElementById("playground");
-PLAYGROUND.addEventListener('mousemove', gestureHandler);
+PLAYGROUND.addEventListener('mousemove', mouseMoveHandler);
+document.addEventListener('keyup', keyUpHandler);
+document.addEventListener('keydown', keyDownHandler);
 
 document.addEventListener("DOMContentLoaded", () => {
   console.info("Hello World!");
