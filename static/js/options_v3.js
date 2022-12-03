@@ -45,7 +45,6 @@ const TRACK = {
   collectPoints: false,
   status: {
     firstPoint: undefined,
-    numPoints: 0,
     up: false,
     down: false,
     left: false,
@@ -248,7 +247,6 @@ function resetTrackedGesture(collectPoints) {
     collectPoints,
     status: {
       firstPoint: undefined,
-      numPoints: 0,
       up: false,
       down: false,
       left: false,
@@ -285,8 +283,6 @@ const mouseMoveHandler = (event) => {
         }
       }
     }
-
-    TRACK.status.numPoints++;
   }
 };
 
@@ -304,7 +300,6 @@ const keyUpHandler = (event) => {
 
     actionHandler(str);
     resetTrackedGesture(false);
-    // console.log("stop tracking. execute action");
   }
 };
 
@@ -321,7 +316,6 @@ const keyDownHandler = (event) => {
   }
 
   if (keyPressed) {
-    // console.log("start tracking");
     resetTrackedGesture(true);
   }
 };
