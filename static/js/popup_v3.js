@@ -1,3 +1,3 @@
 document.querySelector("#options").addEventListener("click", ()=>{
-    window.open("optPage.html");
+    window.open("options_v3.html");
 });
