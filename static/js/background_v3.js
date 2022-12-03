@@ -3,13 +3,13 @@ const COMMANDS = [
   newTab,
   newBgTab,
   closeTab,
-  reopenClosed,
+  reOpenClosedRecentlyClosed,
   reloadTab,
   back,
   forward,
   newWindow,
   closeWindow,
-  home,
+  navigateToHome,
 ];
 
 const MSGTYPE = Object.freeze({
@@ -36,7 +36,7 @@ var theme = false; // False for Dark Theme
 const MANIFEST = chrome.runtime.getManifest();
 
 chrome.runtime.onInstalled.addListener((details) => {
-    // if (details.reason === chrome.runtime.onInstalledReason.INSTALL){ // TODO: This works, (INSTALL, UPDATE, CHROME_UPDATE, SHARED_MODULE_UPDATE)
+    // if (details.reason === chrome.runtime.onInstalledReason.INSTALL){ // XXX: (INSTALL, UPDATE, CHROME_UPDATE, SHARED_MODULE_UPDATE)
       if (details.reason === chrome.runtime.OnInstalledReason.INSTALL || details.reason === chrome.runtime.OnInstalledReason.UPDATE){
         console.log("new install / update");
 
@@ -92,7 +92,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     }
 });
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { // TODO: Possible cross-site scripting from websites. investigate https://developer.chrome.com/docs/extensions/mv3/messaging/#cross-site-scripting
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { // XXX: Possible cross-site scripting from websites. investigate https://developer.chrome.com/docs/extensions/mv3/messaging/#cross-site-scripting
     switch (message.type) {
         case MSGTYPE.GESTURE:
             chrome.storage.sync.get(["mapping"]).then((data) => {
@@ -134,8 +134,6 @@ async function getActiveTab() {
   return tab;
 }
 
-// TODO: Test all commands
-
 function newTab() {
   chrome.tabs.create({ active: true });
   console.log("new tab created");
@@ -144,26 +142,36 @@ function newBgTab() {
   chrome.tabs.create({ active: false });
   console.log("new bg tab");
 }
-function singleTab(cmd) {
-  chrome.tabs.query({ active: true, currentWindow: true }, (arrayTabs) => {
-    let tab = arrayTabs[0];
-    if (cmd === "reload") {
-      chrome.tabs.update(tab.id, { url: tab.url });
-    } else if (cmd === "close") {
-      chrome.tabs.remove(tab.id);
+function updateActiveTab(cmd) {
+  getActiveTab().then((tab) => {
+    if (tab){
+      if (cmd === "reload") {
+        chrome.tabs.update(tab.id, { url: tab.url });
+      } else if (cmd === "close") {
+        chrome.tabs.remove(tab.id);
+      } else if (cmd === "home") {
+        chrome.tabs.update(tab.id,{ url: "about:newtab" }); //v3
+      }
+    } else {
+      console.log("updateActiveTab: no active tab detected");
     }
   });
 }
+
 function closeTab() {
-  singleTab("close");
+  updateActiveTab("close");
   console.log("tab closed");
 }
 function reloadTab() {
-  singleTab("reload");
+  updateActiveTab("reload");
   console.log("tab reloaded");
 }
+function navigateToHome() {
+  updateActiveTab("home");
+  console.log("home");
+}
 
-function reopenClosed() {
+function reOpenClosedRecentlyClosed() {
   chrome.sessions.restore();
   console.log("restored tab");
 }
@@ -180,38 +188,21 @@ function closeWindow() {
 async function injectScript(func) { // v3
   tab = await getActiveTab();
   if (tab){
-    chrome.scripting.executeScript({target: {tabID: tab.id}, func: func });
+    chrome.scripting.executeScript({target: {tabId: tab.id}, func: func });
   } else {
     console.warn("injectScript: Couldn't get active tab");
   }
 }
-// function injectCode(code) { // v2
-//   chrome.tabs.query({ active: true, currentWindow: true }, (tabsArr) => {
-//     chrome.tabs.executeScript( tabId = tabsArr[0].id, {code: code});
-//   });
-// }
 
 function back() {
   injectScript(() => window.history.back()).then(() => {
     console.log("back");
   }); //v3
-  // injectCode("window.history.back()"); //v2
 }
 function forward() {
   injectScript(() => window.history.forward()).then(() => {
     console.log("forward");
   }); //v3
-  // injectCode('window.history.forward()'); //v2
-}
-function home() {
-  getActiveTab().then((tab) => {
-    if (tab){
-      chrome.tabs.update(tab.id,{ url: "about:newtab" }); //v3
-      console.log("Navigated to home tab");
-    } else {
-      console.log("home: cannot find active tab");
-    }
-  })
 }
 
 chrome.storage.onChanged.addListener((changes, namespace) => {

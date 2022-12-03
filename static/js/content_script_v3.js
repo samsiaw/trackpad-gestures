@@ -23,6 +23,19 @@ const MSGTYPE = Object.freeze({
   STATUS: 3,
 });
 
+function resetTrackedGesture(collectPoints) {
+  Object.assign(TRACK, {
+    collectPoints,
+    status: {
+      firstPoint: undefined,
+      up: false,
+      down: false,
+      left: false,
+      right: false,
+    },
+  });
+};
+
 /* Sends messages to background script about what gesture is recognized*/
 function sendGestureMessage(gesture_str) {
   const strToGestureID = {
