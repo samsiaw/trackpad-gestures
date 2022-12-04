@@ -47,12 +47,13 @@ chrome.runtime.onInstalled.addListener((details) => {
           const contentScript = MANIFEST?.content_scripts[0]?.js[0];
           if (contentScript !== undefined) {
             for (let i=0; i<tabs.length; i++) {
-              try {
+              if (tabs[i].url.match(/^(http[s]?)/)){
                 chrome.scripting.executeScript({target : {tabId: tabs[i].id}, files: [contentScript]});
-              } catch (e) {
-                console.warn(e);
+              } else {
                 console.warn("Couldn't execute script on tab with url ("+tabs[i].url+")");
+
               }
+              
             }
           }
         })
@@ -112,8 +113,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { // XXX
         } else {
           sendResponse({type: MSGTYPE.STATUS, value: false}); // Tell extension you could not execute the command
         }
-
-        });
+      });
       break;
   };
   return true; // (keeps sendResonse func valid)
