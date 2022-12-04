@@ -11,6 +11,7 @@ const COMMANDS = [
   closeWindow,
   navigateToHome,
   hardRefresh,
+  doNothing,
 ];
 
 const MSGTYPE = Object.freeze({
@@ -21,6 +22,7 @@ const MSGTYPE = Object.freeze({
 const KEYID = Object.freeze({
   ALT: 0,
   CTRL: 1,
+  SHIFT: 2,
 });
 
 const defaultMapping = [0, 1, 4, 3, 5, 6, 8, 9];
@@ -201,4 +203,8 @@ function forward() {
   injectScript(() => window.history.forward()).then(() => {
     console.log("forward");
   }); //v3
+}
+
+function doNothing() {
+  ;
 }

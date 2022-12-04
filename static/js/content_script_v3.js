@@ -12,6 +12,12 @@ const TRACK = {
   keyID: 0,
 };
 
+const KEYID = Object.freeze({
+  ALT: 0,
+  CTRL: 1,
+  SHIFT: 2,
+});
+
 const KEYDESCRIPTIONS = Object.freeze(["Alt", "Ctrl"]);
 
 
@@ -117,12 +123,16 @@ const keyUpHandler = (event) => {
 const keyDownHandler = (event) => {
   let keyPressed = false;
   switch (Number(TRACK.keyID)){
-    case 1:
+    case KEYID.CTRL:
       keyPressed = event.key === 'Control';
       break;
     
-    case 0:
+    case KEYID.ALT:
       keyPressed = event.key === 'Alt';
+      break;
+    
+    case KEYID.SHIFT:
+      keyPressed = event.key === 'Shift';
       break;
   }
 

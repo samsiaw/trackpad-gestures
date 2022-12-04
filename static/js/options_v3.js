@@ -10,23 +10,25 @@ const CMDDESCRIPTIONS = Object.freeze([
   "Close Active Window",
   "Go Home",
   "Reload Tab (Hard Refresh)",
+  "Not Set",
 ]);
 
 const GESTUREDESCRIPTIONS = Object.freeze([
-  "mouse Down",
-  "mouse Up",
-  "mouse Diagonal Left to Right (Up)",
-  "mouse Diagonal Left to Right (Down)",
-  "mouse Left",
-  "mouse Right",
-  "mouse Diagonal Right to Left (Down)",
-  "mouse Diagonal Right to Left (Up)",
+  "Drag Down",
+  "Drag Up",
+  "Drag Top Right",
+  "Drag Down Right",
+  "Drag Left",
+  "Drag Right",
+  "Drag Down Left",
+  "Drag Top Left",
 ]);
 
 const KEYDESCRIPTIONS = Object.freeze(["Alt", "Ctrl"]);
 const KEYID = Object.freeze({
   ALT: 0,
   CTRL: 1,
+  SHIFT: 2,
 });
 
 const ICONCHARS = [
@@ -307,12 +309,16 @@ const keyUpHandler = (event) => {
 const keyDownHandler = (event) => {
   let keyPressed = false;
   switch (Number(TRACK.keyID)){
-    case 1:
+    case KEYID.CTRL:
       keyPressed = event.key === 'Control';
       break;
     
-    case 0:
+    case KEYID.ALT:
       keyPressed = event.key === 'Alt';
+      break;
+    
+    case KEYID.SHIFT:
+      keyPressed = event.key === 'Shift';
       break;
   }
 
