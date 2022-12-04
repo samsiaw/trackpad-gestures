@@ -1,4 +1,3 @@
-// TODO: Load from chrome.sync.storage
 const TRACK = {
   pointsLimit: 4,
   collectPoints: false,
@@ -38,25 +37,33 @@ function resetTrackedGesture(collectPoints) {
 
 /* Sends messages to background script about what gesture is recognized*/
 function sendGestureMessage(gesture_str) {
-  const strToGestureID = {
-    msR: 5,
-    msL: 4,
-    msD: 0,
-    msU: 1,
-    msLD: 6,
-    msRD: 3,
-    msLU: 7,
-    msRU: 2,
-  };
-  chrome.runtime.sendMessage({ value: strToGestureID[gesture_str], type: MSGTYPE.GESTURE}, (response) => {
-    if (response.type === MSGTYPE.status) {
-      if (response.value === true){
-        console.log("Action executed successfully");
-      } else {
-        console.warn("Failed to execute action for gesture");
+  if (chrome.runtime?.id !== undefined){
+    const strToGestureID = {
+      msR: 5,
+      msL: 4,
+      msD: 0,
+      msU: 1,
+      msLD: 6,
+      msRD: 3,
+      msLU: 7,
+      msRU: 2,
+    };
+    chrome.runtime.sendMessage({ value: strToGestureID[gesture_str], type: MSGTYPE.GESTURE}, (response) => {
+      if (response.type === MSGTYPE.STATUS) {
+        if (response.value === true){
+          console.log("Action executed successfully");
+        } else {
+          console.warn("Failed to execute action for gesture");
+        }
       }
-    }
-  });
+    });
+
+  } else {
+    console.log("content_script: extension was removed or reinstalled");
+    document.removeEventListener("mousemove", mouseMoveHandler);
+    document.removeEventListener("keydown", keyDownHandler);
+    document.removeEventListener("keyup", keyUpHandler);
+  }
 }
 
 const mouseMoveHandler = (event) => {
@@ -124,29 +131,21 @@ const keyDownHandler = (event) => {
   }
 };
 
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'sync') {
+    if (changes['keyID'] !== undefined) {
+      const {newValue, oldValue } = changes['keyID'];
+      TRACK.keyID = Number(newValue);
+      console.log("content_script: keyID changed from", oldValue, "to", newValue);
+    }
 
-// TODO: Migrate to using chrome storage api in content scripts!
-
-// Get the current threshold value
-chrome.runtime.sendMessage({ value: undefined, type: MSGTYPE.THRESHOLD}, (response) => {
-  if (response.type === MSGTYPE.THRESHOLD) {
-    TRACK.threshold = response.value;
-    console.log("Received threshold value from background: "+ TRACK.threshold);
-  } else {
-    console.warn("Failed to retrieve threshold value from background");
+    if (changes['threshold'] !== undefined) {
+      const {newValue, oldValue } = changes['threshold'];
+      TRACK.threshold = Number(newValue);
+      console.log("content_script: threshold changed from", oldValue, "to", newValue);
+    }
   }
 });
-
-// Get the current key id value
-chrome.runtime.sendMessage({ value: undefined, type: MSGTYPE.KEY}, (response) => {
-  if (response.type === MSGTYPE.KEY) {
-    TRACK.keyID = response.value;
-    console.log("Received key value from background: "+ TRACK.keyID);
-  } else {
-    console.warn("Failed to retrieve key value from background");
-  }
-});
-
 
 document.addEventListener("mousemove", mouseMoveHandler);
 document.addEventListener("keydown", keyDownHandler);
