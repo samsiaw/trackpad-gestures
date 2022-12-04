@@ -9,6 +9,7 @@ const CMDDESCRIPTIONS = Object.freeze([
   "Open New Window",
   "Close Active Window",
   "Go Home",
+  "Perform hard refresh on active tab",
 ]);
 
 const GESTUREDESCRIPTIONS = Object.freeze([

@@ -10,6 +10,7 @@ const COMMANDS = [
   newWindow,
   closeWindow,
   navigateToHome,
+  hardRefresh,
 ];
 
 const MSGTYPE = Object.freeze({
@@ -41,13 +42,20 @@ chrome.runtime.onInstalled.addListener((details) => {
         // Remove previous versions' storage
         chrome.storage.sync.remove("tpad_ges");
         
-        // Inject the content script when extension is newly installed / updated.
-        // Manifest handles injecting script on each creation of a new tab
-        // chrome.tabs.query({}, (tabs) => {
-        //   tabs.forEach((tab) => {
-        //     chrome.scripting.executeScript({target: {tabId: tab.id} , files: ['static/js/contentScript.js']});
-        //   });
-        // }); // TODO: Why 'could not load file'??
+        // Inject the content script into all existing tabs when installed
+        chrome.tabs.query({}, (tabs) => {
+          const contentScript = MANIFEST?.content_scripts[0]?.js[0];
+          if (contentScript !== undefined) {
+            for (let i=0; i<tabs.length; i++) {
+              try {
+                chrome.scripting.executeScript({target : {tabId: tabs[i].id}, files: [contentScript]});
+              } catch (e) {
+                console.warn(e);
+                console.warn("Couldn't execute script on tab with url ("+tabs[i].url+")");
+              }
+            }
+          }
+        })
         
         let mappingPromise = chrome.storage.sync.get(["mapping"]);
         mappingPromise.then((data) => {
@@ -129,12 +137,14 @@ function newBgTab() {
 function updateActiveTab(cmd) {
   getActiveTab().then((tab) => {
     if (tab){
-      if (cmd === "reload") {
-        chrome.tabs.update(tab.id, { url: tab.url });
+      if (cmd === "soft-refresh") {
+        chrome.tabs.reload(tab.id, {bypassCache : false});
       } else if (cmd === "close") {
         chrome.tabs.remove(tab.id);
       } else if (cmd === "home") {
         chrome.tabs.update(tab.id,{ url: "about:newtab" }); //v3
+      } else if (cmd === "hard-refresh") {
+        chrome.tabs.reload(tab.id, {bypassCache : true});
       }
     } else {
       console.log("updateActiveTab: no active tab detected");
@@ -147,8 +157,12 @@ function closeTab() {
   console.log("tab closed");
 }
 function reloadTab() {
-  updateActiveTab("reload");
+  updateActiveTab("soft-refresh");
   console.log("tab reloaded");
+}
+function hardRefresh() {
+  updateActiveTab("hard-refresh");
+  console.log("tab reloaded (hard refresh)");
 }
 function navigateToHome() {
   updateActiveTab("home");
