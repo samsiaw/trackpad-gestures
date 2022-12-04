@@ -14,8 +14,6 @@ const COMMANDS = [
 
 const MSGTYPE = Object.freeze({
     GESTURE: 0,
-    THRESHOLD: 1,
-    KEY: 2,
     STATUS: 3,
 });
 
@@ -80,51 +78,37 @@ chrome.runtime.onInstalled.addListener((details) => {
           });
 
           chrome.storage.sync.set(storage).then(() => {
-            console.log(storage);
+            console.log('set');
           });
   
           if (chrome.runtime.openOptionsPage){
             chrome.runtime.openOptionsPage();
           } else {
-            chrome.tabs.create({ url: chrome.runtime.getURL("../../views/options.html")});
+            chrome.tabs.create({ url: chrome.runtime.getURL("../../views/options_v3.html")});
           }
         });
     }
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => { // XXX: Possible cross-site scripting from websites. investigate https://developer.chrome.com/docs/extensions/mv3/messaging/#cross-site-scripting
-    switch (message.type) {
-        case MSGTYPE.GESTURE:
-            chrome.storage.sync.get(["mapping"]).then((data) => {
-              mapping = data.mapping;
-              let commandID = mapping[message.value];
-              let action = commandID !== undefined ? COMMANDS[commandID] : undefined;
+  switch (message.type) {
+    case MSGTYPE.GESTURE:
+      chrome.storage.sync.get(["mapping"]).then((data) => {
+        mapping = data.mapping;
+        let commandID = mapping[message.value];
+        let action = commandID !== undefined ? COMMANDS[commandID] : undefined;
 
-              if (action !== undefined){
-                action();
-                sendResponse({type: MSGTYPE.STATUS, value: true}); // Tell extension you executed the command
-              } else {
-                sendResponse({type: MSGTYPE.STATUS, value: false}); // Tell extension you could not execute the command
-              }
+        if (action !== undefined){
+          action();
+          sendResponse({type: MSGTYPE.STATUS, value: true}); // Tell extension you executed the command
+        } else {
+          sendResponse({type: MSGTYPE.STATUS, value: false}); // Tell extension you could not execute the command
+        }
 
-              });
-            break;
-        
-        case MSGTYPE.THRESHOLD: // A tab is requesting threshold value
-            chrome.storage.sync.get(["threshold"]).then((data) => {
-                threshold = data.threshold;
-                sendResponse({type: MSGTYPE.THRESHOLD, value: threshold});
-            });
-            break;
-        
-        case MSGTYPE.KEY: // A tab is requesting key id
-            chrome.storage.sync.get(["keyID"]).then((data) => {
-                keyID = data.keyID;
-                sendResponse({type: MSGTYPE.KEY, value: keyID});
-            });
-            break;
-    };
-    return true; // (keeps sendResonse func valid)
+        });
+      break;
+  };
+  return true; // (keeps sendResonse func valid)
   
 });
 
@@ -204,9 +188,3 @@ function forward() {
     console.log("forward");
   }); //v3
 }
-
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync') {
-    // TODO: When a value is updated, tell all tabs that it's been updated? OR Decide whether tabs should individually ask for updated value...
-  }
-})
