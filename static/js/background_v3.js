@@ -35,6 +35,7 @@ var storage = {};
 var theme = false; // False for Dark Theme
 
 const MANIFEST = chrome.runtime.getManifest();
+const BLACKLISTEDURLS = [/^(https:\/\/microsoftedge\.microsoft\.com\/addons)/, /^(https:\/\/chrome\.google\.com\/webstore)/, /^(https:\/\/chrome\.google\.com\/.+\/webstore)/];
 
 chrome.runtime.onInstalled.addListener((details) => {
     // if (details.reason === chrome.runtime.onInstalledReason.INSTALL){ // XXX: (INSTALL, UPDATE, CHROME_UPDATE, SHARED_MODULE_UPDATE)
@@ -49,11 +50,10 @@ chrome.runtime.onInstalled.addListener((details) => {
           const contentScript = MANIFEST?.content_scripts[0]?.js[0];
           if (contentScript !== undefined) {
             for (let i=0; i<tabs.length; i++) {
-              if (tabs[i].url.match(/^(http[s]?)/)){
+              if (tabs[i].url.match(/^(http[s]?)/) && BLACKLISTEDURLS.every((val) => !tabs[i].url.match(val))){
                 chrome.scripting.executeScript({target : {tabId: tabs[i].id}, files: [contentScript]});
               } else {
-                console.warn("Couldn't execute script on tab with url ("+tabs[i].url+")");
-
+                console.log("Couldn't execute script on tab with url: "+tabs[i].url);
               }
               
             }
@@ -144,7 +144,9 @@ function updateActiveTab(cmd) {
       } else if (cmd === "close") {
         chrome.tabs.remove(tab.id);
       } else if (cmd === "home") {
-        chrome.tabs.update(tab.id,{ url: "about:newtab" }); //v3
+        chrome.history.addUrl({url: tab.url}, () => {
+          chrome.tabs.update(tab.id,{ url: "about:newtab" }); //v3
+        });
       } else if (cmd === "hard-refresh") {
         chrome.tabs.reload(tab.id, {bypassCache : true});
       }

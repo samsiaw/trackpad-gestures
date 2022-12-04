@@ -10,7 +10,7 @@ const CMDDESCRIPTIONS = Object.freeze([
   "Close Active Window",
   "Go Home",
   "Reload Tab (Hard Refresh)",
-  "Not Set",
+  "Do Nothing",
 ]);
 
 const GESTUREDESCRIPTIONS = Object.freeze([
@@ -24,11 +24,10 @@ const GESTUREDESCRIPTIONS = Object.freeze([
   "Drag Top Left",
 ]);
 
-const KEYDESCRIPTIONS = Object.freeze(["Alt", "Ctrl"]);
+const KEYDESCRIPTIONS = Object.freeze(["Alt Key", "Ctrl Key"]);
 const KEYID = Object.freeze({
   ALT: 0,
   CTRL: 1,
-  SHIFT: 2,
 });
 
 const ICONCHARS = [
@@ -317,9 +316,6 @@ const keyDownHandler = (event) => {
       keyPressed = event.key === 'Alt';
       break;
     
-    case KEYID.SHIFT:
-      keyPressed = event.key === 'Shift';
-      break;
   }
 
   if (keyPressed) {

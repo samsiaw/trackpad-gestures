@@ -7,7 +7,8 @@
         "storage",
         "sessions",
         "tabs",
-        "scripting"
+        "scripting",
+        "history"
     ],
     "host_permissions": [
         "<all_urls>"

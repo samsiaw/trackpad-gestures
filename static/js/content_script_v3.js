@@ -15,7 +15,6 @@ const TRACK = {
 const KEYID = Object.freeze({
   ALT: 0,
   CTRL: 1,
-  SHIFT: 2,
 });
 
 const KEYDESCRIPTIONS = Object.freeze(["Alt", "Ctrl"]);
@@ -57,9 +56,9 @@ function sendGestureMessage(gesture_str) {
     chrome.runtime.sendMessage({ value: strToGestureID[gesture_str], type: MSGTYPE.GESTURE}, (response) => {
       if (response.type === MSGTYPE.STATUS) {
         if (response.value === true){
-          console.log("Action executed successfully");
+          console.log("content_script: Action executed successfully");
         } else {
-          console.warn("Failed to execute action for gesture");
+          console.log("content_script: Failed to execute action for gesture");
         }
       }
     });
@@ -131,9 +130,6 @@ const keyDownHandler = (event) => {
       keyPressed = event.key === 'Alt';
       break;
     
-    case KEYID.SHIFT:
-      keyPressed = event.key === 'Shift';
-      break;
   }
 
   if (keyPressed) {
