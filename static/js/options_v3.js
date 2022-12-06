@@ -24,10 +24,11 @@ const GESTUREDESCRIPTIONS = Object.freeze([
   "Drag Top Left",
 ]);
 
-const KEYDESCRIPTIONS = Object.freeze(["Alt Key", "Ctrl Key"]);
+const TRIGGERDESCRIPTIONS = Object.freeze(["Alt Key", "Ctrl Key", "Right Click"]);
 const KEYID = Object.freeze({
   ALT: 0,
   CTRL: 1,
+  MSRIGHT: 2,
 });
 
 const ICONCHARS = [
@@ -56,10 +57,13 @@ const TRACK = {
   threshold: 15, // Default value
   keyID: 0, // Default key = 'alt'
   theme: false, // Default theme = dark
+  triggerType: undefined,
+  allowCtxMenu: false, // Used for dbl right click events
 };
 
 const THRESHOLDMIN = 5;
 const THRESHOLDMAX = 40;
+const DBLCLICKINTERVAL = 300; // ms
 
 function createSelectElement(description, optionsTextArray, selectedValue, onChangeHandler) {
   // type: string
@@ -133,7 +137,7 @@ chrome.storage.sync.get(["mapping"]).then((data) => {
 
 
 chrome.storage.sync.get(["threshold"]).then((data) => {
-  TRACK.threshold = data.threshold ?? TRACK.threshold;
+  TRACK.threshold = data.threshold !== undefined ? data.threshold : TRACK.threshold;
 
   // Threshold data acquired. Update value
   let thresholdInput = document.getElementById("threshold-input");
@@ -144,7 +148,7 @@ chrome.storage.sync.get(["threshold"]).then((data) => {
 
   thresholdInput.onchange = (event) => {
     // Update the synced value
-    let threshold = event.target.value;
+    let threshold = Number(event.target.value);
     if (threshold > THRESHOLDMAX) {
       threshold = THRESHOLDMAX;
     } else if (threshold < THRESHOLDMIN) {
@@ -171,18 +175,18 @@ chrome.storage.sync.get(["keyID"]).then((data) => {
   let selectionCell = TRIGGERTABLE.rows[1].cells[1];
 
   let selOnChangeHandler = (event) => {
-    let keyID = event.target.value;
-    let triggerDescription = KEYDESCRIPTIONS[keyID];
+    let keyID = Number(event.target.value);
+    let triggerDescription = TRIGGERDESCRIPTIONS[keyID];
 
     if (triggerDescription !== undefined) {
-      chrome.storage.sync.set({ "keyID": Number(keyID) }).then(() => {
+      chrome.storage.sync.set({ "keyID": keyID }).then(() => {
         TRACK.keyID = keyID;
         console.log("Changed key to " + triggerDescription);
       });
     }
   };
 
-  let sel = createSelectElement("Select a trigger key", KEYDESCRIPTIONS, TRACK.keyID, selOnChangeHandler);
+  let sel = createSelectElement("Select a trigger key", TRIGGERDESCRIPTIONS, TRACK.keyID, selOnChangeHandler);
   selectionCell.appendChild(sel);
 
 });
@@ -244,7 +248,7 @@ const actionHandler = (gestureStr) => {
   }
 };
 
-function resetTrackedGesture(collectPoints) {
+function resetTrackedGesture(collectPoints, whichTrigger) {
   Object.assign(TRACK, {
     collectPoints,
     status: {
@@ -254,6 +258,7 @@ function resetTrackedGesture(collectPoints) {
       left: false,
       right: false,
     },
+    triggerType: whichTrigger,
   });
 };
 
@@ -288,8 +293,8 @@ const mouseMoveHandler = (event) => {
   }
 };
 
-const keyUpHandler = (event) => {
-  if (TRACK.collectPoints) {
+function recognizeGesture(event, whichTrigger) {
+  if (TRACK.collectPoints && TRACK.triggerType === whichTrigger) {
     // Recognize gesture and reset gesture tracking information
     const { up, down, left, right } = TRACK.status;
 
@@ -301,33 +306,84 @@ const keyUpHandler = (event) => {
     else if (down) str += "D";
 
     actionHandler(str);
-    resetTrackedGesture(false);
+    resetTrackedGesture(false, undefined);
   }
 };
 
-const keyDownHandler = (event) => {
+function recognizeTrigger(event, whichTrigger) {
   let keyPressed = false;
-  switch (Number(TRACK.keyID)){
-    case KEYID.CTRL:
-      keyPressed = event.key === 'Control';
-      break;
-    
-    case KEYID.ALT:
-      keyPressed = event.key === 'Alt';
-      break;
-    
+  if (whichTrigger === "key"){
+    switch (Number(TRACK.keyID)){
+      case KEYID.CTRL:
+        keyPressed = event.key === 'Control';
+        break;
+      
+      case KEYID.ALT:
+        keyPressed = event.key === 'Alt';
+        break;
+      
+    }
+  } else if (whichTrigger === "ms"){
+    keyPressed = Number(TRACK.keyID) === KEYID.MSRIGHT && event.button === 2;
   }
 
   if (keyPressed) {
-    resetTrackedGesture(true);
+    resetTrackedGesture(true, whichTrigger);
   }
 };
+
+function keyUpHandler(event) {
+  console.log("key up");
+  recognizeGesture(event, "key");
+  console.log(TRACK);
+}
+
+function keyDownHandler(event) {
+  console.log("key down");
+  recognizeTrigger(event, "key");
+  console.log(TRACK);
+}
+
+function mouseUpHandler(event) {
+  console.log("ms up");
+  recognizeGesture(event, "ms");
+  console.log(TRACK);
+}
+
+function mouseDownHandler(event) {
+  console.log("ms down");
+  recognizeTrigger(event, "ms");
+  console.log(TRACK);
+}
+
+function contextMenuHandler(event) {
+  // Only allows the context menu to show for dbl right clicks
+  if (Number(TRACK.keyID) === KEYID.MSRIGHT && event.button === 2) {
+    if (TRACK.allowCtxMenu) {
+      // Reset the stored gesture data
+      resetTrackedGesture(false, undefined);
+      TRACK.allowCtxMenu = false;
+      console.log("ctx menu allowed");
+    } else {
+      // Single right click (so prevent context menu)
+      event.preventDefault();
+      TRACK.allowCtxMenu = true;
+      setTimeout(function (){
+        TRACK.allowCtxMenu = false;
+      }, DBLCLICKINTERVAL);
+      console.log("ctx menu prevented");
+    }
+  }
+}
 
 /* Playground */
 const PLAYGROUND = document.getElementById("playground");
 PLAYGROUND.addEventListener('mousemove', mouseMoveHandler);
 document.addEventListener('keyup', keyUpHandler);
 document.addEventListener('keydown', keyDownHandler);
+document.addEventListener("mouseup", mouseUpHandler);
+document.addEventListener("mousedown", mouseDownHandler);
+document.addEventListener("contextmenu", contextMenuHandler);
 
 document.addEventListener("DOMContentLoaded", () => {
   console.info("Hello World!");
