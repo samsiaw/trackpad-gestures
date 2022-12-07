@@ -1,76 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="../static/css/options.css" type="text/css" />
-  </head>
-  <body id="body">
-    <!-- <div id="body"> -->
-      <nav>
-      </nav>
-      <div id="main-wrapper">
-        <div id="main">
-          <input type="checkbox" id="theme-checkbox">
-          <label id="theme-label" for="theme-checkbox"></label> 
 
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../static/css/options.css" type="text/css" />
+</head>
 
-          <table id="trigger-table">
-            <tbody>
+<body id="body">
+  <nav>
+  </nav>
+  <div id="main">
+    <div class="flex-item">
+      <table id="trigger-table">
+        <tbody>
 
-              <tr>
-                <th>Type</th>
-                <th>Value</th>
-              </tr>
+          <tr>
+            <th>Resource</th>
+            <th>Value</th>
+          </tr>
 
-              <tr>
-                <td>Trigger</td>
-                <td>
-                </td>
-              </tr>
+          <tr>
+            <td>Trigger</td>
+            <td>
+            </td>
+          </tr>
 
-              <tr>
-                <td>Threshold</td>
-                <td>
-                  <span>5 </span>
-                  <input type="range" min="5" max="40" id="threshold-input">
-                  <span> 40 :</span>
-                  <span id="threshold-span"></span>
-                </td>
-              </tr>
-
-            </tbody>
-          </table>
-
-          <table id="gesture-table">
-            <tbody>
-              <tr>
-                <th>Gesture</th>
-                <th>Icon</th>
-                <th>Command</th>
-              </tr>
-            </tbody>
-          </table>
+          <tr>
+            <td>Theme</td>
+            <td>
+              <div id="toggle-wrapper">
+                <div id="toggle-outer">
+                  <div id="toggle-inner"></div>
+                </div>
+              </div>
+            </td>
+          </tr>
           
-          
-        </div>
-        
-          <div id="playground-wrapper">
-            <div id="playground-text">Playground</div>
-            <div id="playground">
-              <div id="playground-gesture"></div>
-              <div id="playground-command"></div>
-            </div>
-        </div>
+          <tr>
+            <td>Threshold</td>
+            <td>
+              <span>5 </span>
+              <input type="range" min="5" max="40" id="threshold-input">
+              <span> 40 :</span>
+              <span id="threshold-span"></span>
+            </td>
+          </tr>
 
-        </div> 
+        </tbody>
+      </table>
+
+      <table id="gesture-table">
+        <tbody>
+          <tr>
+            <th>Gesture</th>
+            <th>Icon</th>
+            <th>Command</th>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="playground-wrapper" class="flex-item">
+      <div id="playground-text">Playground</div>
+      <div id="playground">
+        <div id="playground-gesture"></div>
+        <div id="playground-command"></div>
       </div>
-    <!-- </div> -->
+    </div>
 
-    
+  </div>
 
-    
+  <script src="../static/js/options_v3.js"></script>
+</body>
 
-    <script src="../static/js/options_v3.js"></script>
-  </body>
 </html>

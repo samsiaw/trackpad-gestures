@@ -14,14 +14,14 @@ const CMDDESCRIPTIONS = Object.freeze([
 ]);
 
 const GESTUREDESCRIPTIONS = Object.freeze([
-  "Drag Down",
-  "Drag Up",
-  "Drag Top Right",
-  "Drag Down Right",
-  "Drag Left",
-  "Drag Right",
-  "Drag Down Left",
-  "Drag Top Left",
+  "Move Down",
+  "Move Up",
+  "Move Top Right",
+  "Move Down Right",
+  "Move Left",
+  "Move Right",
+  "Move Down Left",
+  "Move Top Left",
 ]);
 
 const TRIGGERDESCRIPTIONS = Object.freeze(["Alt Key", "Ctrl Key", "Right Click"]);
@@ -44,7 +44,6 @@ const ICONCHARS = [
 const DEFAULTMAPPING = [0, 1, 4, 3, 5, 6, 8, 9];
 
 const TRACK = {
-  pointsLimit: 4,
   collectPoints: false,
   status: {
     firstPoint: undefined,
@@ -88,15 +87,13 @@ function createSelectElement(description, optionsTextArray, selectedValue, onCha
 const TRIGGERTABLE = document.getElementById("trigger-table");
 const GESTURETABLE = document.getElementById("gesture-table");
 const BODY = document.getElementById("body");
-const THEMECHECKBOX = document.getElementById("theme-checkbox");
+const THEMETOGGLE = document.getElementById("toggle-outer");
 
 // Maps Gesture to Command. Numbers represent command index.
 // Index of list represents gesture index
 
 // Load Mappings and Gesture Table
 chrome.storage.sync.get(["mapping"]).then((data) => {
-  console.log(data);
-  console.log(data.mapping);
   TRACK.currentMapping = data.mapping ?? DEFAULTMAPPING;
 
   let createSelOnChangeHandler = (gestureID) => {
@@ -126,6 +123,7 @@ chrome.storage.sync.get(["mapping"]).then((data) => {
 
     var iconCell = row.insertCell(1);
     iconCell.innerHTML = ICONCHARS[i];
+    iconCell.classList.add("icon-char");
 
     // create selector for gesture table
     var commandCell = row.insertCell(2);
@@ -201,13 +199,6 @@ function changeThemeRecurse(parentElement, isLight) {
 
 function changeTheme(isLight) {
   changeThemeRecurse(BODY, isLight);
-
-  let themeLabel = document.getElementById("theme-label");
-  if (isLight) {
-    themeLabel.innerText = "Change theme to dark";
-  } else {
-    themeLabel.innerText = "Change theme to light";
-  }
 }
 
 
@@ -215,11 +206,9 @@ chrome.storage.sync.get(["theme"]).then((data) => {
   TRACK.theme = data.theme !== undefined ? data.theme : TRACK.theme;
 
   // Change the theme and update the theme checkbox's state
-  THEMECHECKBOX.checked = TRACK.theme;
   changeTheme(TRACK.theme);
-
-  THEMECHECKBOX.onchange = () => {
-    TRACK.theme = THEMECHECKBOX.checked;
+  THEMETOGGLE.onclick = (event) => {
+    TRACK.theme = !TRACK.theme;
     chrome.storage.sync.set({ "theme": TRACK.theme }).then(() => {
       changeTheme(TRACK.theme);
     });
@@ -268,7 +257,6 @@ const mouseMoveHandler = (event) => {
     const y = event.screenY;
     const first_point = TRACK.status.firstPoint;
 
-      // collect points
     if (first_point === undefined) {
       TRACK.status.firstPoint = [x, y];
     } else {
@@ -312,18 +300,17 @@ function recognizeGesture(event, whichTrigger) {
 
 function recognizeTrigger(event, whichTrigger) {
   let keyPressed = false;
-  if (whichTrigger === "key"){
-    switch (Number(TRACK.keyID)){
+  if (whichTrigger === "key") {
+    switch (Number(TRACK.keyID)) {
       case KEYID.CTRL:
         keyPressed = event.key === 'Control';
         break;
-      
+
       case KEYID.ALT:
         keyPressed = event.key === 'Alt';
         break;
-      
     }
-  } else if (whichTrigger === "ms"){
+  } else if (whichTrigger === "ms") {
     keyPressed = Number(TRACK.keyID) === KEYID.MSRIGHT && event.button === 2;
   }
 
@@ -333,45 +320,33 @@ function recognizeTrigger(event, whichTrigger) {
 };
 
 function keyUpHandler(event) {
-  console.log("key up");
   recognizeGesture(event, "key");
-  console.log(TRACK);
 }
 
 function keyDownHandler(event) {
-  console.log("key down");
   recognizeTrigger(event, "key");
-  console.log(TRACK);
 }
 
 function mouseUpHandler(event) {
-  console.log("ms up");
   recognizeGesture(event, "ms");
-  console.log(TRACK);
 }
 
 function mouseDownHandler(event) {
-  console.log("ms down");
   recognizeTrigger(event, "ms");
-  console.log(TRACK);
 }
 
 function contextMenuHandler(event) {
   // Only allows the context menu to show for dbl right clicks
   if (Number(TRACK.keyID) === KEYID.MSRIGHT && event.button === 2) {
     if (TRACK.allowCtxMenu) {
-      // Reset the stored gesture data
       resetTrackedGesture(false, undefined);
       TRACK.allowCtxMenu = false;
-      console.log("ctx menu allowed");
     } else {
-      // Single right click (so prevent context menu)
       event.preventDefault();
       TRACK.allowCtxMenu = true;
-      setTimeout(function (){
+      setTimeout(function () {
         TRACK.allowCtxMenu = false;
       }, DBLCLICKINTERVAL);
-      console.log("ctx menu prevented");
     }
   }
 }
@@ -379,6 +354,7 @@ function contextMenuHandler(event) {
 /* Playground */
 const PLAYGROUND = document.getElementById("playground");
 PLAYGROUND.addEventListener('mousemove', mouseMoveHandler);
+
 document.addEventListener('keyup', keyUpHandler);
 document.addEventListener('keydown', keyDownHandler);
 document.addEventListener("mouseup", mouseUpHandler);
@@ -388,5 +364,3 @@ document.addEventListener("contextmenu", contextMenuHandler);
 document.addEventListener("DOMContentLoaded", () => {
   console.info("Hello World!");
 });
-
-// TODO: Change max/min of threshold from options_v3.js
