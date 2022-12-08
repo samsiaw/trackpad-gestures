@@ -41,15 +41,15 @@ function sendGestureMessage(gesture_str) {
     chrome.runtime.sendMessage({ value: strToGestureID[gesture_str], type: MSGTYPE.GESTURE}, (response) => {
       if (response.type === MSGTYPE.STATUS) {
         if (response.value === true){
-          console.log("content_script: Action executed successfully");
+          // console.log("content_script: Action executed successfully");
         } else {
-          console.log("content_script: Failed to execute action for gesture");
+          // console.log("content_script: Failed to execute action for gesture");
         }
       }
     });
 
   } else {
-    console.log("content_script: extension was removed or reinstalled");
+    // console.log("content_script: extension was removed or reinstalled");
 
     document.removeEventListener("mousemove", mouseMoveHandler);
     document.removeEventListener("keydown", keyDownHandler);
@@ -201,4 +201,4 @@ chrome.storage.sync.get(["threshold", "keyID"]).then((data) => {
   TRACK.keyID = data.keyID !== undefined ? data.keyID : TRACK.keyID;
 });
 
-console.log("Injected");
+// console.log("Injected");
