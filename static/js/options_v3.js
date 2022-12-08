@@ -184,7 +184,7 @@ chrome.storage.sync.get(["keyID"]).then((data) => {
     }
   };
 
-  let sel = createSelectElement("Select a trigger key", TRIGGERDESCRIPTIONS, TRACK.keyID, selOnChangeHandler);
+  let sel = createSelectElement("Select a trigger", TRIGGERDESCRIPTIONS, TRACK.keyID, selOnChangeHandler);
   selectionCell.appendChild(sel);
 
 });
@@ -289,10 +289,12 @@ function recognizeGesture(event, whichTrigger) {
 
     let str = "ms";
     if (left) str += "L";
-    else if (right) str += "R";
+    
+    if (right) str += "R";
 
     if (up) str += "U";
-    else if (down) str += "D";
+    
+    if (down) str += "D";
 
     actionHandler(str);
     resetTrackedGesture(false, undefined);
