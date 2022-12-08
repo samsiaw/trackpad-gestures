@@ -1,3 +1,3 @@
-# Trackpad-gestures
+# Trackpad Gestures
 
-Combines keyboard and trackpad / mouse combinations as shortcuts for browsers
+This extension allows users to use mouse gestures in conjunction with keyboard or mouse right-click triggers to perform custom assigned actions

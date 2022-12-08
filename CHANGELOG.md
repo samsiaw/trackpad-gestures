@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Playground for testing gestures on Options page
 
+- Theme Switch
 ### Changed
 
 - Transitioned to Manifest Version 3
