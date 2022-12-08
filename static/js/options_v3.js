@@ -84,7 +84,9 @@ function createSelectElement(description, optionsTextArray, selectedValue, onCha
   return sel;
 }
 
+/** @type {HTMLTableElement} */
 const TRIGGERTABLE = document.getElementById("trigger-table");
+/** @type {HTMLTableElement} */
 const GESTURETABLE = document.getElementById("gesture-table");
 const BODY = document.getElementById("body");
 const THEMETOGGLE = document.getElementById("toggle-outer");
@@ -107,7 +109,7 @@ chrome.storage.sync.get(["mapping"]).then((data) => {
         TRACK.currentMapping[gestureID] = Number(cmdID);
 
         chrome.storage.sync.set({ "mapping": TRACK.currentMapping }).then(() => {
-          console.log('Gesture: ' + gestureDescription + ' changed its command to ' + cmdDescription);
+          // console.log('Gesture: ' + gestureDescription + ' changed its command to ' + cmdDescription);
         });
 
       }
@@ -157,7 +159,6 @@ chrome.storage.sync.get(["threshold"]).then((data) => {
     thresholdSpan.innerText = TRACK.threshold;
 
     chrome.storage.sync.set({ "threshold": Number(threshold) }).then(() => {
-      console.log("threshold updated to " + threshold);
     });
   }
 
@@ -168,7 +169,7 @@ chrome.storage.sync.get(["threshold"]).then((data) => {
 
 chrome.storage.sync.get(["keyID"]).then((data) => {
   TRACK.keyID = data.keyID !== undefined ? data.keyID : TRACK.keyID;
-  console.log("stored keyID:" + TRACK.keyID);
+
   // Update the trigger table
   let selectionCell = TRIGGERTABLE.rows[1].cells[1];
 
@@ -179,7 +180,6 @@ chrome.storage.sync.get(["keyID"]).then((data) => {
     if (triggerDescription !== undefined) {
       chrome.storage.sync.set({ "keyID": keyID }).then(() => {
         TRACK.keyID = keyID;
-        console.log("Changed key to " + triggerDescription);
       });
     }
   };
@@ -232,7 +232,8 @@ const actionHandler = (gestureStr) => {
       document.getElementById("playground-gesture").innerText = GESTUREDESCRIPTIONS[gestureID];
       document.getElementById("playground-command").innerText = CMDDESCRIPTIONS[TRACK.currentMapping[gestureID]];
     } else {
-      console.log("action_handler: couldn't recognize gesture");
+      document.getElementById("playground-gesture").innerText = "Unrecognized Gesture";
+      document.getElementById("playground-command").innerText = "";
     }
   }
 };
@@ -350,6 +351,49 @@ function contextMenuHandler(event) {
     }
   }
 }
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'sync') {
+    if (changes['keyID'] !== undefined) {
+      const {newValue, oldValue } = changes['keyID'];
+      TRACK.keyID = Number(newValue);
+      
+      let triggerCell = TRIGGERTABLE.rows[1].cells[1];
+      let triggerSel = triggerCell.children.item(0);
+      triggerSel.value = TRACK.keyID;
+    }
+
+    if (changes['threshold'] !== undefined) {
+      const {newValue, oldValue } = changes['threshold'];
+      TRACK.threshold = Number(newValue);
+
+      let thresholdInput = document.getElementById("threshold-input");
+      let thresholdSpan = document.getElementById("threshold-span");
+
+      thresholdInput.value = TRACK.threshold;
+      thresholdSpan.innerText = TRACK.threshold;
+    }
+
+    if (changes['mapping'] !== undefined) {
+      const {newValue, oldValue} = changes['mapping'];
+      TRACK.currentMapping = newValue;
+
+      for (let gestureID =0; gestureID < newValue.length; gestureID++) {
+        let cmdID = newValue[gestureID];
+        if (oldValue[gestureID] != newValue[gestureID]) {
+          let cmdSel = GESTURETABLE.rows[gestureID+1].cells[2].children[0];
+          cmdSel.value = cmdID;
+        }
+      }
+    }
+
+    if (changes["theme"] !== undefined) {
+      const {newValue, oldValue} = changes["theme"];
+      TRACK.theme = newValue;
+      changeTheme(TRACK.theme);
+    }
+  }
+});
 
 /* Playground */
 const PLAYGROUND = document.getElementById("playground");
