@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Updated logic for gesture recognition for content scripts
 
+- Gesture and Action Descriptions
 ### Fixed
 
 - Changes to trigger key not registering or persisting on page / browser reload
